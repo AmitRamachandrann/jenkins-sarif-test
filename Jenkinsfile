@@ -15,29 +15,33 @@ pipeline {
                     if [ ! -f "$SPOTBUGS_ZIP" ]; then
                       echo "Downloading SpotBugs..."
                       curl -LO "$SPOTBUGS_URL"
-                    else
-                      echo "SpotBugs zip already exists. Skipping download."
                     fi
 
                     if [ ! -f "$FINDBUGS_ZIP" ]; then
                       echo "Downloading FindSecBugs..."
                       curl -LO "$FINDBUGS_URL"
-                    else
-                      echo "FindSecBugs zip already exists. Skipping download."
                     fi
                 '''
             }
         }
 
-        stage('Unzip Tools') {
+        stage('Extract Tools (jar instead of unzip)') {
             steps {
                 sh '''
                     if [ ! -d "spotbugs-4.9.3" ]; then
-                      unzip -q "$SPOTBUGS_ZIP"
+                      echo "Extracting SpotBugs with jar..."
+                      mkdir spotbugs-4.9.3
+                      cd spotbugs-4.9.3
+                      jar xf ../$SPOTBUGS_ZIP
+                      cd ..
                     fi
 
                     if [ ! -d "find-sec-bugs-version-1.14.0" ]; then
-                      unzip -q "$FINDBUGS_ZIP"
+                      echo "Extracting FindSecBugs with jar..."
+                      mkdir find-sec-bugs-version-1.14.0
+                      cd find-sec-bugs-version-1.14.0
+                      jar xf ../$FINDBUGS_ZIP
+                      cd ..
                     fi
                 '''
             }
