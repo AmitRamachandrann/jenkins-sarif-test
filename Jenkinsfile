@@ -39,6 +39,19 @@ pipeline {
             }
         }
 
+        stage('Security Scan') {
+            steps {
+                echo 'Running gosec security scan...'
+                sh '''
+                    if ! command -v gosec >/dev/null 2>&1; then
+                        go install github.com/securego/gosec/v2/cmd/gosec@latest
+                        export PATH=$PATH:$(go env GOPATH)/bin
+                    fi
+                    gosec -fmt sarif -out gosec-results-sarif.json ./...
+                '''
+            }
+        }
+
         stage('Deploy') {
             steps {
                 echo 'Deploying...'
