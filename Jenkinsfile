@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        PYTHON_DIR = "${WORKSPACE}/python"
-        NJSSCAN = "${PYTHON_DIR}/bin/njsscan"
+        VENV_DIR = "${env.WORKSPACE}/venv"
+        NJSSCAN = "${VENV_DIR}/bin/njsscan"
         TARGET_DIR = "${WORKSPACE}/test-nodejs-code"
         SARIF_FILE = "${WORKSPACE}/njsscan-results.sarif"
     }
