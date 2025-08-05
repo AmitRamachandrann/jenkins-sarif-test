@@ -1,20 +1,18 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.11-slim'
-        }
-    }
+    agent any
 
     stages {
-        stage('Check Python & Pip') {
+        stage('Check yum Availability') {
             steps {
-                echo '🔍 Checking Python & Pip inside Docker container...'
+                echo '🔍 Checking if yum is available...'
                 sh '''
-                    echo "Python version:"
-                    python3 --version
-
-                    echo "\nPip version:"
-                    pip3 --version
+                    echo "Looking for yum:"
+                    if command -v yum >/dev/null 2>&1; then
+                        echo "✅ yum is available"
+                        yum --version
+                    else
+                        echo "❌ yum is NOT available"
+                    fi
                 '''
             }
         }
