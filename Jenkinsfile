@@ -1,33 +1,29 @@
 pipeline {
     agent any
     environment {
-        PYTHON_VERSION = "3.11.9"
-        PYTHON_BASE_URL = "https://www.python.org/ftp/python"
         PYTHON_DIR = "${env.WORKSPACE}/python"
+        PYTHON_URL = "https://github.com/indygreg/python-build-standalone/releases/download/20240107/cpython-3.11.7+20240107-x86_64-unknown-linux-gnu-install_only.tar.gz"
     }
     stages {
-        stage('Download and Extract Python') {
+        stage('Download Prebuilt Python') {
             steps {
-                echo "🐍 Downloading Python ${env.PYTHON_VERSION}..."
+                echo "⬇️ Downloading prebuilt Python binary..."
                 sh '''
                     mkdir -p $PYTHON_DIR
-                    cd $WORKSPACE
+                    cd $PYTHON_DIR
 
-                    curl -O ${PYTHON_BASE_URL}/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
-                    tar -xzf Python-${PYTHON_VERSION}.tgz
-                    cd Python-${PYTHON_VERSION}
+                    curl -L -o python.tar.gz $PYTHON_URL
+                    tar -xzf python.tar.gz --strip-components=1
 
-                    ./configure --prefix=$PYTHON_DIR --enable-optimizations
-                    make -j$(nproc)
-                    make install
+                    echo "✅ Python extracted to: $PYTHON_DIR"
                 '''
             }
         }
-        stage('Verify Local Python') {
+        stage('Verify Python & Pip') {
             steps {
                 sh '''
-                    $PYTHON_DIR/bin/python3 --version
-                    $PYTHON_DIR/bin/pip3 --version
+                    $PYTHON_DIR/bin/python3.11 --version
+                    $PYTHON_DIR/bin/pip3.11 --version
                 '''
             }
         }
