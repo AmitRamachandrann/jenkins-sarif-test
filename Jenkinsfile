@@ -2,18 +2,21 @@ pipeline {
     agent any
 
     stages {
-        stage('Show Branch Info') {
+        stage('Check Python and Pip Versions') {
             steps {
-                script {
-                    echo "🔀 Building branch: ${env.BRANCH_NAME}"
-                }
-            }
-        }
+                echo 'Checking Python and Pip versions...'
+                sh '''
+                    which python || true
+                    which python3 || true
+                    which pip || true
+                    which pip3 || true
 
-        stage('List All Files') {
-            steps {
-                echo "📄 Listing all files in the repository:"
-                sh 'find . -type f'
+                    python --version || true
+                    python3 --version || true
+
+                    pip --version || true
+                    pip3 --version || true
+                '''
             }
         }
     }
