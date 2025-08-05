@@ -1,31 +1,20 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'python:3.11-slim'
+        }
+    }
 
     stages {
         stage('Check Python & Pip') {
             steps {
-                echo '🔍 Checking Python & Pip availability...'
+                echo '🔍 Checking Python & Pip inside Docker container...'
                 sh '''
                     echo "Python version:"
-                    command -v python3 && python3 --version || echo "python3 not found"
+                    python3 --version
 
                     echo "\nPip version:"
-                    command -v pip3 && pip3 --version || echo "pip3 not found"
-                '''
-            }
-        }
-
-        stage('Install Python & Pip (if missing)') {
-            steps {
-                echo '🛠️ Installing Python and Pip if not available...'
-                sh '''
-                    if ! command -v python3 >/dev/null 2>&1 || ! command -v pip3 >/dev/null 2>&1; then
-                        echo "Installing Python 3 and pip using yum..."
-                        sudo yum update -y
-                        sudo yum install -y python3
-                    else
-                        echo "Python 3 and pip are already installed."
-                    fi
+                    pip3 --version
                 '''
             }
         }
