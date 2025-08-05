@@ -15,11 +15,15 @@ pipeline {
                     if [ ! -f "$SPOTBUGS_ZIP" ]; then
                       echo "Downloading SpotBugs..."
                       curl -LO "$SPOTBUGS_URL"
+                    else
+                      echo "✅ SpotBugs zip already exists. Skipping download."
                     fi
 
                     if [ ! -f "$FINDBUGS_ZIP" ]; then
                       echo "Downloading FindSecBugs..."
                       curl -LO "$FINDBUGS_URL"
+                    else
+                      echo "✅ FindSecBugs zip already exists. Skipping download."
                     fi
                 '''
             }
@@ -50,9 +54,25 @@ pipeline {
         stage('Run SpotBugs + FindSecBugs (SARIF)') {
             steps {
                 sh '''
-                    java -jar spotbugs-4.9.3/lib/spotbugs.jar \
+                    SPOTBUGS_JAR=$(find spotbugs-4.9.3 -name spotbugs.jar | head -n 1)
+                    FINDBUGS_PLUGIN_JAR=$(find find-sec-bugs-version-1.14.0 -name 'findsecbugs-plugin-*.jar' | head -n 1)
+
+                    if [ ! -f "$SPOTBUGS_JAR" ]; then
+                      echo "❌ spotbugs.jar not found!"
+                      find spotbugs-4.9.3
+                      exit 1
+                    fi
+
+                    if [ ! -f "$FINDBUGS_PLUGIN_JAR" ]; then
+                      echo "❌ findsecbugs plugin JAR not found!"
+                      find find-sec-bugs-version-1.14.0
+                      exit 1
+                    fi
+
+                    echo "✅ Running SpotBugs with plugin..."
+                    java -jar "$SPOTBUGS_JAR" \
                       -textui \
-                      -pluginList find-sec-bugs-version-1.14.0/findsecbugs-plugin-1.14.0.jar \
+                      -pluginList "$FINDBUGS_PLUGIN_JAR" \
                       -sarif \
                       -output findsecbugs-report.sarif \
                       vulnearblesqlapp-0.0.1-SNAPSHOT.jar
@@ -62,7 +82,10 @@ pipeline {
 
         stage('Print SARIF Report') {
             steps {
-                sh 'cat findsecbugs-report.sarif'
+                sh '''
+                    echo "📄 SARIF Report Output:"
+                    cat findsecbugs-report.sarif
+                '''
             }
         }
     }
