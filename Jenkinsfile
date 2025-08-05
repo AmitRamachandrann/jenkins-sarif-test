@@ -58,7 +58,7 @@ pipeline {
                         go install github.com/securego/gosec/v2/cmd/gosec@latest
                         export PATH=$PATH:$(go env GOPATH)/bin
                     fi
-                    gosec -fmt sarif -out gosec-results-sarif.json ./...
+                    gosec -fmt sarif ./...
                 '''
             }
         }
