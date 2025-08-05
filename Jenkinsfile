@@ -8,7 +8,8 @@ pipeline {
         SARIF_FILE = "${WORKSPACE}/njsscan-results.sarif"
     }
 
-    stage('Install semgrep if missing') {
+    stages {
+        stage('Install semgrep if missing') {
     steps {
         echo '📦 Checking for semgrep...'
         sh '''
@@ -22,9 +23,6 @@ pipeline {
         '''
     }
 }
-
-
-    stages {
         stage('Run njsscan and Output SARIF') {
             steps {
                 echo '🚨 Running njsscan on test-nodejs-code...'
