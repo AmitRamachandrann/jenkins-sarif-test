@@ -47,7 +47,7 @@ pipeline {
                     if ! command -v go >/dev/null 2>&1; then
                         GO_VERSION=1.22.3
                         curl -LO https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
-                        sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz
+                        rm -rf /usr/local/go && tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz
                         export PATH=$PATH:/usr/local/go/bin
                     else
                         export PATH=$PATH:/usr/local/go/bin
