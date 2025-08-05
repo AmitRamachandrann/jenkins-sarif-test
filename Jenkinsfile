@@ -8,6 +8,22 @@ pipeline {
         SARIF_FILE = "${WORKSPACE}/njsscan-results.sarif"
     }
 
+    stage('Install semgrep if missing') {
+    steps {
+        echo '📦 Checking for semgrep...'
+        sh '''
+            source ${VENV_DIR}/bin/activate
+            if ! command -v semgrep >/dev/null 2>&1; then
+                echo "⏬ semgrep not found. Installing..."
+                pip install semgrep
+            else
+                echo "✅ semgrep is already installed."
+            fi
+        '''
+    }
+}
+
+
     stages {
         stage('Run njsscan and Output SARIF') {
             steps {
