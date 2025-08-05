@@ -2,20 +2,24 @@ pipeline {
     agent any
 
     stages {
-        stage('Check Python and Pip Versions') {
+        stage('Detect OS Info') {
             steps {
-                echo 'Checking Python and Pip versions...'
+                echo 'Gathering OS and environment info...'
                 sh '''
-                    which python || true
-                    which python3 || true
-                    which pip || true
-                    which pip3 || true
+                    echo "Hostname:"
+                    hostname || echo "hostname not found"
 
-                    python --version || true
-                    python3 --version || true
+                    echo "\n OS Info:"
+                    uname -a || echo "uname not found"
 
-                    pip --version || true
-                    pip3 --version || true
+                    echo "\n Current Directory:"
+                    pwd
+
+                    echo "\n Directory Listing:"
+                    ls -alh
+
+                    echo "\n Environment Variables:"
+                    env
                 '''
             }
         }
