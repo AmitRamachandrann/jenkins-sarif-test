@@ -2,47 +2,20 @@ pipeline {
     agent any
 
     stages {
-        stage('Build and Test') {
-            parallel {
-                stage('Build') {
-                    stages {
-                        stage('Compile') {
-                            steps {
-                                echo 'Compiling...'
-                                sleep 5
-                            }
-                        }
-                        stage('Package') {
-                            steps {
-                                echo 'Packaging...'
-                                sleep 5
-                            }
-                        }
-                    }
-                }
-                stage('Test') {
-                    stages {
-                        stage('Unit Tests') {
-                            steps {
-                                echo 'Running Unit Tests...'
-                                sleep 5
-                            }
-                        }
-                        stage('Integration Tests') {
-                            steps {
-                                echo 'Running Integration Tests...'
-                                sleep 5
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Deploy') {
+        stage('Check Java Installation') {
             steps {
-                echo 'Deploying...'
-                sleep 5
+                script {
+                    def javaInstalled = sh(script: 'command -v java', returnStatus: true) == 0
+
+                    if (javaInstalled) {
+                        echo "✅ Java is installed."
+                        sh 'java -version'
+                    } else {
+                        echo "❌ Java is NOT installed."
+                        // Optionally, fail the build
+                        error("Java is not installed on this agent.")
+                    }
+                }
             }
         }
     }
