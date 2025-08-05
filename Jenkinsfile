@@ -1,29 +1,31 @@
 pipeline {
     agent any
+
     environment {
         PYTHON_DIR = "${env.WORKSPACE}/python"
-        PYTHON_URL = "https://github.com/indygreg/python-build-standalone/releases/download/20240107/cpython-3.11.7+20240107-x86_64-unknown-linux-gnu-install_only.tar.gz"
+        VENV_DIR = "${env.WORKSPACE}/venv"
     }
+
     stages {
-        stage('Download Prebuilt Python') {
-            steps {
-                echo "⬇️ Downloading prebuilt Python binary..."
-                sh '''
-                    mkdir -p $PYTHON_DIR
-                    cd $PYTHON_DIR
-
-                    curl -L -o python.tar.gz $PYTHON_URL
-                    tar -xzf python.tar.gz --strip-components=1
-
-                    echo "✅ Python extracted to: $PYTHON_DIR"
-                '''
-            }
-        }
-        stage('Verify Python & Pip') {
+        stage('Setup Virtualenv and Install njsscan if Missing') {
             steps {
                 sh '''
-                    $PYTHON_DIR/bin/python3.11 --version
-                    $PYTHON_DIR/bin/pip3.11 --version
+                    if [ ! -d "$VENV_DIR" ]; then
+                        echo "🐍 Creating virtualenv at $VENV_DIR"
+                        $PYTHON_DIR/bin/python3.11 -m venv $VENV_DIR
+                    else
+                        echo "✅ Virtualenv already exists at $VENV_DIR"
+                    fi
+
+                    source $VENV_DIR/bin/activate
+
+                    if ! $VENV_DIR/bin/pip show njsscan > /dev/null 2>&1; then
+                        echo "📦 Installing njsscan..."
+                        $VENV_DIR/bin/pip install --upgrade pip
+                        $VENV_DIR/bin/pip install njsscan
+                    else
+                        echo "✅ njsscan is already installed"
+                    fi
                 '''
             }
         }
