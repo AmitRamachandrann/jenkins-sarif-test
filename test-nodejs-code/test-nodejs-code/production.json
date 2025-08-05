@@ -1,0 +1,17 @@
+{
+	"apps": [
+		{
+			"name": "NodeREST",
+			"script": "src/index.js",
+			"instances": "max",
+			"exec_mode" : "cluster",
+			"watch": false,
+			"env": {
+				"COMMON_VARIABLE": "true",
+				"NODE_ENV": "production"
+			},
+			"log_file": "./nws.log",
+			"node_args": ""
+		}
+	]
+}

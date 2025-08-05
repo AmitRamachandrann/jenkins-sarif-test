@@ -1,0 +1,46 @@
+{
+  "name": "noderest",
+  "version": "1.0.0",
+  "description": "Simple Web Service with API",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=10.0.0",
+    "npm": ">=6.0.0"
+  },
+  "scripts": {
+    "start": "pm2 start production.json",
+    "stop": "pm2 kill",
+    "test": "nyc mocha",
+    "test-integration": "mocha test-integration",
+    "lint": "eslint src/**/*.js -o lint.json --f json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git.calculi.com:7999/exp/noderest.git"
+  },
+  "keywords": [
+    "nodejs",
+    "web",
+    "server",
+    "rest"
+  ],
+  "author": "Adam Gensler",
+  "license": "ISC",
+  "dependencies": {
+    "config": "^3.3.7",
+    "express": "^4.17.1",
+    "mathjs": "^7.6.0",
+    "pm2": "^5.2.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.0",
+    "@types/request": "^2.48.2",
+    "chai": "^4.2.0",
+    "eslint": "^6.1.0",
+    "mocha": "^6.2.3",
+    "node-mocks-http": "^1.7.6",
+    "nyc": "^14.1.1",
+    "request": "^2.88.0"
+  },
+  "bundledDependencies": []
+}
