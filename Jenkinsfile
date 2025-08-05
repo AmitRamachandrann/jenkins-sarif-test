@@ -2,50 +2,61 @@ pipeline {
     agent any
 
     environment {
-        SPOTBUGS_JAR = 'spotbugs.jar'
-        FINSECBUGS_PLUGIN = 'findsecbugs-plugin-1.14.0.jar'
-        TARGET_JAR = 'vulnearblesqlapp-0.0.1-SNAPSHOT.jar'
-        REPORT_FILE = 'findsecbugs-report.sarif'
+        SPOTBUGS_URL = "https://github.com/spotbugs/spotbugs/releases/download/4.9.3/spotbugs-4.9.3.zip"
+        FINDBUGS_URL = "https://github.com/find-sec-bugs/find-sec-bugs/archive/refs/tags/version-1.14.0.zip"
+        SPOTBUGS_ZIP = "spotbugs-4.9.3.zip"
+        FINDBUGS_ZIP = "version-1.14.0.zip"
     }
 
     stages {
-        stage('Verify Java Installation') {
+        stage('Download SpotBugs & FindSecBugs') {
             steps {
-                script {
-                    def javaInstalled = sh(script: 'command -v java', returnStatus: true) == 0
-                    if (!javaInstalled) {
-                        error "❌ Java is not installed."
-                    }
-                    sh 'java -version'
-                }
+                sh '''
+                    if [ ! -f "$SPOTBUGS_ZIP" ]; then
+                      echo "Downloading SpotBugs..."
+                      curl -LO "$SPOTBUGS_URL"
+                    else
+                      echo "SpotBugs zip already exists. Skipping download."
+                    fi
+
+                    if [ ! -f "$FINDBUGS_ZIP" ]; then
+                      echo "Downloading FindSecBugs..."
+                      curl -LO "$FINDBUGS_URL"
+                    else
+                      echo "FindSecBugs zip already exists. Skipping download."
+                    fi
+                '''
             }
         }
 
-        stage('Run SpotBugs Analysis') {
+        stage('Unzip Tools') {
             steps {
-                script {
-                    def filesExist = sh(
-                        script: "[ -f ${SPOTBUGS_JAR} ] && [ -f ${FINSECBUGS_PLUGIN} ] && [ -f ${TARGET_JAR} ]",
-                        returnStatus: true
-                    ) == 0
+                sh '''
+                    if [ ! -d "spotbugs-4.9.3" ]; then
+                      unzip -q "$SPOTBUGS_ZIP"
+                    fi
 
-                    if (!filesExist) {
-                        error "❌ Required files not found: spotbugs.jar, plugin, or target JAR."
-                    }
-
-                    sh """
-                        java -jar ${SPOTBUGS_JAR} \\
-                          -textui \\
-                          -pluginList ${FINSECBUGS_PLUGIN} \\
-                          -sarif \\
-                          -output ${REPORT_FILE} \\
-                          ${TARGET_JAR}
-                    """
-                }
+                    if [ ! -d "find-sec-bugs-version-1.14.0" ]; then
+                      unzip -q "$FINDBUGS_ZIP"
+                    fi
+                '''
             }
         }
 
-        stage('Show SARIF Output') {
+        stage('Run SpotBugs + FindSecBugs (SARIF)') {
+            steps {
+                sh '''
+                    java -jar spotbugs-4.9.3/lib/spotbugs.jar \
+                      -textui \
+                      -pluginList find-sec-bugs-version-1.14.0/findsecbugs-plugin-1.14.0.jar \
+                      -sarif \
+                      -output findsecbugs-report.sarif \
+                      vulnearblesqlapp-0.0.1-SNAPSHOT.jar
+                '''
+            }
+        }
+
+        stage('Print SARIF Report') {
             steps {
                 sh 'cat findsecbugs-report.sarif'
             }
