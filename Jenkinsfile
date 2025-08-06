@@ -2,29 +2,39 @@ pipeline {
     agent any
 
     environment {
-        GRYPE_BINARY_DIR = "${env.WORKSPACE}/bin"
-        GRYPE_JAR_FILE = "vulnearblesqlapp-0.0.1-SNAPSHOT.jar"
-        GRYPE_REPORT = "grype-report.sarif"
+        GRYPE_VERSION = 'v0.97.1' // or latest
+        GRYPE_BINARY_DIR = '/usr/local/bin'
+        TARGET_IMAGE = 'ubuntu:20.04'
+        GRYPE_REPORT = 'grype-report.sarif'
     }
 
     stages {
         stage('Install Grype') {
             steps {
+                script {
+                    sh '''
+                    echo "Installing Grype..."
+                    curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b ${GRYPE_BINARY_DIR}
+                    grype version
+                    '''
+                }
+            }
+        }
+
+        stage('Pull Vulnerable Docker Image') {
+            steps {
                 sh '''
-                echo "Installing Grype..."
-                mkdir -p ${GRYPE_BINARY_DIR}
-                export PATH=${GRYPE_BINARY_DIR}:$PATH
-                curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b ${GRYPE_BINARY_DIR}
-                grype version
+                echo "Pulling image: $TARGET_IMAGE"
+                docker pull $TARGET_IMAGE
                 '''
             }
         }
 
-        stage('Scan Local JAR with Grype') {
+        stage('Run Grype and Generate SARIF') {
             steps {
                 sh '''
-                echo "Scanning local JAR file with Grype..."
-                ${GRYPE_BINARY_DIR}/grype ${GRYPE_JAR_FILE} -o sarif > ${GRYPE_REPORT}
+                echo "Running Grype scan on $TARGET_IMAGE"
+                grype $TARGET_IMAGE -o sarif > $GRYPE_REPORT
                 '''
             }
         }
@@ -33,10 +43,9 @@ pipeline {
             steps {
                 sh '''
                 echo "=== Grype SARIF Report ==="
-                cat ${GRYPE_REPORT}
+                cat $GRYPE_REPORT
                 '''
             }
         }
-
     }
 }
