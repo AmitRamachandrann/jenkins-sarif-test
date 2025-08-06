@@ -2,6 +2,7 @@ pipeline {
   agent any
 
   environment {
+    PYTHON_DIR = "${env.WORKSPACE}/python"  // Use the same Python path as first pipeline
     VENV_DIR = "${env.WORKSPACE}/venv"
     SCAN_DIR = "${env.WORKSPACE}/test-nodejs-code"
   }
@@ -12,7 +13,7 @@ pipeline {
         echo "🐍 Creating virtual environment if missing..."
         sh '''
           if [ ! -d "$VENV_DIR" ]; then
-            python3.11 -m venv "$VENV_DIR"
+            $PYTHON_DIR/bin/python3.11 -m venv "$VENV_DIR"
           else
             echo "✅ Virtualenv already exists."
           fi
@@ -26,8 +27,8 @@ pipeline {
         sh '''
           source "$VENV_DIR/bin/activate"
           if ! njsscan --version > /dev/null 2>&1; then
-            pip3.11 install --upgrade pip
-            pip3.11 install njsscan
+            pip install --upgrade pip
+            pip install njsscan
           else
             echo "✅ njsscan already installed in venv."
           fi
@@ -41,7 +42,7 @@ pipeline {
         sh '''
           source "$VENV_DIR/bin/activate"
           if ! semgrep --version > /dev/null 2>&1; then
-            pip3.11 install semgrep
+            pip install semgrep
           else
             echo "✅ semgrep already installed in venv."
           fi
