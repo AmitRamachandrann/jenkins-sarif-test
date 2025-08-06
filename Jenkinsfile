@@ -12,7 +12,7 @@ pipeline {
         echo "🐍 Creating virtual environment if missing..."
         sh '''
           if [ ! -d "$VENV_DIR" ]; then
-            python3 -m venv "$VENV_DIR"
+            python3.11 -m venv "$VENV_DIR"
           else
             echo "✅ Virtualenv already exists."
           fi
@@ -26,8 +26,8 @@ pipeline {
         sh '''
           source "$VENV_DIR/bin/activate"
           if ! njsscan --version > /dev/null 2>&1; then
-            pip install --upgrade pip
-            pip install njsscan
+            pip3.11 install --upgrade pip
+            pip3.11 install njsscan
           else
             echo "✅ njsscan already installed in venv."
           fi
@@ -41,7 +41,7 @@ pipeline {
         sh '''
           source "$VENV_DIR/bin/activate"
           if ! semgrep --version > /dev/null 2>&1; then
-            pip install semgrep
+            pip3.11 install semgrep
           else
             echo "✅ semgrep already installed in venv."
           fi
