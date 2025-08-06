@@ -2,41 +2,38 @@ pipeline {
     agent any
 
     environment {
-        GRYPE_VERSION = 'v0.97.1'
         GRYPE_BINARY_DIR = "${env.WORKSPACE}/bin"
-        TARGET_IMAGE = 'ubuntu:20.04'
-        GRYPE_REPORT = 'grype-report.sarif'
+        GRYPE_JAR_FILE = "vulnerable-spring-app-0.0.1-SNAPSHOT.jar"
+        GRYPE_REPORT = "grype-report.sarif"
     }
 
     stages {
         stage('Install Grype') {
             steps {
-                script {
-                    sh '''
-                    echo "Installing Grype..."
-                    mkdir -p ${GRYPE_BINARY_DIR}
-                    export PATH=${GRYPE_BINARY_DIR}:$PATH
-                    curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b ${GRYPE_BINARY_DIR}
-                    grype version
-                    '''
-                }
-            }
-        }
-
-        stage('Pull Vulnerable Docker Image') {
-            steps {
                 sh '''
-                echo "Pulling image: $TARGET_IMAGE"
-                docker pull $TARGET_IMAGE
+                echo "Installing Grype..."
+                mkdir -p ${GRYPE_BINARY_DIR}
+                export PATH=${GRYPE_BINARY_DIR}:$PATH
+                curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b ${GRYPE_BINARY_DIR}
+                grype version
                 '''
             }
         }
 
-        stage('Run Grype and Generate SARIF') {
+        stage('Download Vulnerable JAR') {
             steps {
                 sh '''
-                echo "Running Grype scan on $TARGET_IMAGE"
-                grype $TARGET_IMAGE -o sarif > $GRYPE_REPORT
+                echo "Downloading test JAR..."
+                curl -L -o ${GRYPE_JAR_FILE} https://raw.githubusercontent.com/anchore/scan-action/main/examples/vulnerable-jar/vulnerable-spring-app-0.0.1-SNAPSHOT.jar
+                '''
+            }
+        }
+
+        stage('Scan JAR with Grype') {
+            steps {
+                sh '''
+                echo "Scanning JAR file with Grype..."
+                ${GRYPE_BINARY_DIR}/grype ${GRYPE_JAR_FILE} -o sarif > ${GRYPE_REPORT}
                 '''
             }
         }
@@ -45,7 +42,7 @@ pipeline {
             steps {
                 sh '''
                 echo "=== Grype SARIF Report ==="
-                cat $GRYPE_REPORT
+                cat ${GRYPE_REPORT}
                 '''
             }
         }
