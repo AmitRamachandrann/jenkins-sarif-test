@@ -1,0 +1,5 @@
+{
+	"recursive": true,
+	"reporter": "xunit",
+	"reporter-options": ["output=test.xml", "suiteName=Node REST Test Report"]
+}

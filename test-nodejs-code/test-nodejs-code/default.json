@@ -1,0 +1,15 @@
+{
+	"apps": [
+		{
+			"name": "NodeREST",
+			"script": "src/index.js",
+			"instances": 1,
+			"watch": ["src/*.js"],
+			"env": {
+				"COMMON_VARIABLE": "true"
+			},
+			"log_file": "./nws.log",
+			"node_args": ""
+		}
+	]
+}

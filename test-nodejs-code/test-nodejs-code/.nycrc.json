@@ -1,0 +1,5 @@
+{
+	"all": true,
+	"reporter": "cobertura",
+	"include": "src"
+}

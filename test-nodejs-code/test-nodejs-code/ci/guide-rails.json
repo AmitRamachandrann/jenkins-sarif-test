@@ -1,0 +1,465 @@
+{
+	"metadata": {
+		"version": 1
+	},
+	"application": {
+		"name": "noderest",
+		"language": "NODEJS",
+		"artifact_store": {
+			"type": "s3",
+			"repositories": [
+				{
+					"category": "rc-packaging",
+					"bucket": "guide-rails-calculi-rc"
+				},
+				{
+					"category": "final-packaging",
+					"bucket": "guide-rails-calculi-final"
+				},
+				{
+					"category": "logs",
+					"bucket": "guide-rails-calculi-logs"
+				}
+			]
+		}
+	},
+	"pipeline": {
+		"segments": [
+			{
+				"name": "Build",
+				"segment_type": "build",
+				"job_steps": [
+					{
+						"name": "Dependencies",
+						"definition": "Dependencies",
+						"command": "npm install",
+						"properties": null
+					},
+					{
+						"name": "Lint",
+						"definition": "Eslint",
+						"command": "set +e\nnpm run lint",
+						"properties": null
+					},
+					{
+						"name": "Test",
+						"definition": "Test",
+						"command": "npm test",
+						"properties": null
+					},
+					{
+						"name": "Copy reports",
+						"definition": "Copy reports",
+						"command": "cp coverage/cobertura-coverage.xml coverage.xml",
+						"properties": null
+					},
+					{
+						"name": "Package app",
+						"definition": "Package app",
+						"command": "npm pack",
+						"properties": null
+					}
+				],
+				"exit_actions": {
+					"default": {
+						"fetch_logs": true,
+						"notifications": [
+							{
+								"type": "slack",
+								"send_notification": false,
+								"to": null,
+								"message": ""
+							}
+						],
+						"code_analysis": {
+							"publish": true,
+							"properties": null
+						},
+						"delete_instances": true
+					},
+					"on_success": {
+						"notifications": [
+							{
+								"type": "slack",
+								"send_notification": false,
+								"to": null,
+								"message": ""
+							}
+						],
+						"code_analysis": null
+					},
+					"on_failure": {
+						"notifications": [
+							{
+								"type": "slack",
+								"send_notification": false,
+								"to": null,
+								"message": ""
+							}
+						],
+						"code_analysis": null
+					},
+					"on_abort": {
+						"notifications": [
+							{
+								"type": "slack",
+								"send_notification": false,
+								"to": null,
+								"message": ""
+							}
+						],
+						"code_analysis": null
+					}
+				},
+				"properties": [
+					{
+						"name": "npm.cache",
+						"description": "npm cache path is set to ${SEGMENT_BASE_DIR}/cache/.npm by default, when caching is enabled. Caches are maintained on the worker where your build gets allocated. For a new worker assigned to the build, the cache will be re-created",
+						"value": "${SEGMENT_BASE_DIR}/cache/.npm"
+					}
+				],
+				"deployment_strategy": {},
+				"application_init": {
+					"command": "",
+					"arguments": null
+				},
+				"packages": [
+					{
+						"name": "noderest",
+						"dependencies": [],
+						"downloads": [],
+						"files": [
+							"noderest-1.0.0.tgz"
+						],
+						"package_install_command": "",
+						"installed_path": ""
+					},
+					{
+						"name": "nodejs",
+						"dependencies": [],
+						"downloads": [
+							{
+								"link": "https://nodejs.org/dist/v10.16.3/node-v10.16.3-linux-x64.tar.xz",
+								"name": "nodejs.tar.xz"
+							}
+						],
+						"files": [],
+						"package_install_command": "set -ex\ntar xf nodejs/nodejs.tar.xz\ncp -R node-v*-linux-x64/* ${BOSH_INSTALL_TARGET}",
+						"installed_path": ""
+					},
+					{
+						"name": "node_modules",
+						"dependencies": [],
+						"downloads": [],
+						"files": [
+							"node_modules"
+						],
+						"package_install_command": "",
+						"installed_path": ""
+					}
+				],
+				"instance_tags": [
+					{
+						"name": "application.name",
+						"value": "((application.name))"
+					}
+				],
+				"post_deployment_actions": {
+					"instances": null,
+					"loadbalanced": false,
+					"loadbalancer": {
+						"TargetGroupName": "",
+						"TargetGroupPort": 0,
+						"TargetGroupProtocol": "",
+						"TargetType": "",
+						"VPCID": "",
+						"HealthCheckEnabled": false,
+						"HealthCheckPort": "",
+						"UnhealthyThresholdCount": 0
+					}
+				},
+				"cache_info": {
+					"paths": [
+						"((npm.cache))"
+					]
+				}
+			},
+			{
+				"name": "Integration",
+				"segment_type": "integration",
+				"run_after": [
+					"Build"
+				],
+				"job_steps": [
+					{
+						"name": "Integration Tests",
+						"definition": "Integration Tests",
+						"command": "export PATH=${PKG_BASE_DIR}/nodejs/bin:$PATH\ntar zxf ${PKG_BASE_DIR}/noderest/noderest-1.0.0.tgz\nmv package/* package/.[^.]* .\ncp -R ${PKG_BASE_DIR}/node_modules/node_modules .\nnpm run test-integration\ncp test.xml ${TEST_LOGS_DIR}/",
+						"properties": null
+					}
+				],
+				"exit_actions": {
+					"default": {
+						"fetch_logs": true,
+						"notifications": [
+							{
+								"type": "slack",
+								"send_notification": false,
+								"to": null,
+								"message": ""
+							}
+						],
+						"code_analysis": {
+							"publish": false,
+							"properties": null
+						},
+						"delete_instances": true
+					},
+					"on_success": {
+						"notifications": [
+							{
+								"type": "slack",
+								"send_notification": false,
+								"to": null,
+								"message": ""
+							}
+						],
+						"code_analysis": {
+							"publish": false,
+							"properties": null
+						}
+					},
+					"on_failure": {
+						"notifications": [
+							{
+								"type": "slack",
+								"send_notification": false,
+								"to": null,
+								"message": ""
+							}
+						],
+						"code_analysis": {
+							"publish": false,
+							"properties": null
+						}
+					},
+					"on_abort": {
+						"notifications": [
+							{
+								"type": "slack",
+								"send_notification": false,
+								"to": null,
+								"message": ""
+							}
+						],
+						"code_analysis": {
+							"publish": false,
+							"properties": null
+						}
+					}
+				},
+				"deployment_strategy": {
+					"canaries": 1,
+					"max_in_flight": 1,
+					"canary_watch_time": "5000-90000",
+					"update_watch_time": "5000-90000",
+					"serial": false
+				},
+				"application_init": {
+					"command": "",
+					"arguments": null
+				},
+				"process": {
+					"init": {
+						"command": ""
+					}
+				},
+				"package_dependencies": [
+					"nodejs",
+					"noderest",
+					"node_modules"
+				],
+				"instance_tags": [
+					{
+						"name": "application.name",
+						"value": "((application.name))"
+					}
+				],
+				"instance_groups": [
+					{
+						"name": "((application.name))",
+						"number_of_instances": 1,
+						"persistent_disk_type": "",
+						"vm_type": "default",
+						"os_type": "default",
+						"networks": [
+							"((deploy.target.network.integration))"
+						],
+						"availability_zones": [
+							"((deploy.target.zone.integration))"
+						],
+						"deployment_strategy": {},
+						"dependencies": [
+							{
+								"name": "consul",
+								"release": "consul",
+								"provides": [
+									{
+										"name": "consul_servers.as",
+										"value": "consul_1"
+									}
+								],
+								"consumes": [
+									{
+										"name": "consul_servers.from",
+										"value": "consul_1"
+									}
+								],
+								"properties": [
+									{
+										"name": "consul.servicename",
+										"value": "((consul.servicename))"
+									},
+									{
+										"name": "consul.environment",
+										"value": "((consul.environment))"
+									},
+									{
+										"name": "consul.datacenter",
+										"value": "((consul.datacenter))"
+									},
+									{
+										"name": "consul.server",
+										"value": "false"
+									},
+									{
+										"name": "consul.joinservers",
+										"value": "((consul.joinservers))"
+									},
+									{
+										"name": "calculi.intermediate.cert",
+										"value": "grsecret:tls.cert"
+									},
+									{
+										"name": "calculi.intermediate.key",
+										"value": "grsecret:tls.key"
+									}
+								]
+							}
+						]
+					}
+				],
+				"post_deployment_actions": {
+					"instances": null,
+					"loadbalanced": false,
+					"loadbalancer": {
+						"TargetGroupName": "",
+						"TargetGroupPort": 0,
+						"TargetGroupProtocol": "",
+						"TargetType": "",
+						"VPCID": "",
+						"HealthCheckEnabled": false,
+						"HealthCheckPort": "",
+						"UnhealthyThresholdCount": 0
+					}
+				}
+			}
+		],
+		"exit_actions": {
+			"default": {
+				"fetch_logs": true,
+				"notifications": [
+					{
+						"type": "slack",
+						"send_notification": false,
+						"to": null,
+						"message": ""
+					}
+				],
+				"code_analysis": {
+					"publish": true,
+					"properties": null
+				},
+				"delete_instances": true
+			},
+			"on_success": {
+				"notifications": [
+					{
+						"type": "slack",
+						"send_notification": false,
+						"to": null,
+						"message": ""
+					}
+				],
+				"code_analysis": null
+			},
+			"on_failure": {
+				"notifications": [
+					{
+						"type": "slack",
+						"send_notification": false,
+						"to": null,
+						"message": ""
+					}
+				],
+				"code_analysis": null
+			},
+			"on_abort": {
+				"notifications": [
+					{
+						"type": "slack",
+						"send_notification": false,
+						"to": null,
+						"message": ""
+					}
+				],
+				"code_analysis": null
+			}
+		},
+		"default_properties": [
+			{
+				"name": "exclusions",
+				"value": "**/node_modules/**",
+				"type": "string"
+			}
+		],
+		"deployment_files": [
+			{
+				"source_path": "ci/bin/start.sh",
+				"target_path": "bin/start.sh"
+			},
+			{
+				"source_path": "ci/bin/stop.sh",
+				"target_path": "bin/stop.sh"
+			}
+		],
+		"application_init": {
+			"command": "",
+			"arguments": null
+		},
+		"process": {
+			"init": {
+				"command": "bin/start.sh"
+			},
+			"stop": {
+				"command": [
+					"bin/stop.sh"
+				]
+			},
+			"pid": {
+				"command": [
+					"cp /home/vcap/.pm2/pm2.pid ${APPLICATION_PID_FILE}"
+				]
+			}
+		},
+		"releases": [
+			{
+				"name": "consul",
+				"version": "latest"
+			}
+		]
+	},
+	"organization": {
+		"orgname": "Tutorial"
+	}
+}
