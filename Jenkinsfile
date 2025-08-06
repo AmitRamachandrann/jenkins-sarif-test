@@ -24,7 +24,7 @@ pipeline {
             steps {
                 sh '''
                 echo "Downloading test JAR..."
-                curl -L -o ${GRYPE_JAR_FILE} https://raw.githubusercontent.com/anchore/scan-action/main/examples/vulnerable-jar/vulnerable-spring-app-0.0.1-SNAPSHOT.jar
+                curl -L -o ${GRYPE_JAR_FILE} https://github.com/mjoellnier/vulnerable-java-application/releases/download/v0.0.1/vulnerable-spring-app-0.0.1-SNAPSHOT.jar
                 '''
             }
         }
