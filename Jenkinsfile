@@ -1,5 +1,3 @@
-working jenkins file
-
 pipeline {
     agent any
 
