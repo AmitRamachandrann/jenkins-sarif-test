@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         GRYPE_BINARY_DIR = "${env.WORKSPACE}/bin"
-        GRYPE_JAR_FILE = "vulnerable-spring-app-0.0.1-SNAPSHOT.jar"
+        GRYPE_JAR_FILE = "vulnearblesqlapp-0.0.1-SNAPSHOT.jar"
         GRYPE_REPORT = "grype-report.sarif"
     }
 
@@ -20,19 +20,10 @@ pipeline {
             }
         }
 
-        stage('Download Vulnerable JAR') {
+        stage('Scan Local JAR with Grype') {
             steps {
                 sh '''
-                echo "Downloading test JAR..."
-                curl -L -o ${GRYPE_JAR_FILE} https://github.com/mjoellnier/vulnerable-java-application/releases/download/v0.0.1/vulnerable-spring-app-0.0.1-SNAPSHOT.jar
-                '''
-            }
-        }
-
-        stage('Scan JAR with Grype') {
-            steps {
-                sh '''
-                echo "Scanning JAR file with Grype..."
+                echo "Scanning local JAR file with Grype..."
                 ${GRYPE_BINARY_DIR}/grype ${GRYPE_JAR_FILE} -o sarif > ${GRYPE_REPORT}
                 '''
             }
