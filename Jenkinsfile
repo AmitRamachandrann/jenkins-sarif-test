@@ -11,6 +11,7 @@ pipeline {
       steps {
         echo "🐍 Creating virtual environment if missing..."
         sh '''
+          ls -lrth
           if [ ! -d "$VENV_DIR" ]; then
             python3 -m venv "$VENV_DIR"
           else
