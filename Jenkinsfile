@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         GRYPE_VERSION = 'v0.97.1'
-        GRYPE_BINARY_DIR = '/usr/local/bin'
+        GRYPE_BINARY_DIR = "${env.WORKSPACE}/bin"
         TARGET_IMAGE = 'ubuntu:20.04'
         GRYPE_REPORT = 'grype-report.sarif'
     }
@@ -14,7 +14,9 @@ pipeline {
                 script {
                     sh '''
                     echo "Installing Grype..."
-                    curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b ${GRYPE_BINARY_DIR}
+                    mkdir -p ${GRYPE_BINARY_DIR}
+                    export PATH=${GRYPE_BINARY_DIR}:$PATH
+                    curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b ${GRYPE_BINARY_DIR}
                     grype version
                     '''
                 }
