@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         GRYPE_BINARY_DIR = "${env.WORKSPACE}/bin"
-        GRYPE_JAR_FILE = "vulnearblesqlapp-0.0.1-SNAPSHOT.jar"
+        GRYPE_SCAN_TARGET = "test-workflow-ninja"
         GRYPE_REPORT = "grype-report.sarif"
     }
 
@@ -20,11 +20,11 @@ pipeline {
             }
         }
 
-        stage('Scan Local JAR with Grype') {
+        stage('Scan Folder with Grype') {
             steps {
                 sh '''
-                echo "Scanning local JAR file with Grype..."
-                ${GRYPE_BINARY_DIR}/grype ${GRYPE_JAR_FILE} -o sarif > ${GRYPE_REPORT}
+                echo "Scanning folder '${GRYPE_SCAN_TARGET}' with Grype..."
+                ${GRYPE_BINARY_DIR}/grype ${GRYPE_SCAN_TARGET} -o sarif > ${GRYPE_REPORT}
                 '''
             }
         }
