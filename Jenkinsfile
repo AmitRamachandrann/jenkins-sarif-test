@@ -1,14 +1,18 @@
 pipeline {
     agent any 
 
+    environment {
+        JFROG_BINARY_DIR = "${env.WORKSPACE}/bin"
+    }
+
     stages {
         stage('Install Jfrog') {
             steps {
                 sh '''
-                su - 
                 echo "Installing Jfrog..."
-                uname -a
-                curl -fL https://install-cli.jfrog.io | sh
+                mkdir -p ${JFROG_BINARY_DIR}
+                export PATH=${JFROG_BINARY_DIR}:$PATH
+                curl -fL https://install-cli.jfrog.io | sh -s -- -b ${JFROG_BINARY_DIR}
                 jg -v
                 '''
             }
@@ -26,7 +30,7 @@ pipeline {
         stage('Scan Folder with Jfrog') {
             steps {
                 sh '''
-                jf audit --format=sarif
+                ${JFROG_BINARY_DIR}/jf audit --format=sarif
                 '''
             }
         }
