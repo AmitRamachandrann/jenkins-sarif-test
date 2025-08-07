@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         GRYPE_BINARY_DIR = "${env.WORKSPACE}/bin"
-        GRYPE_SCAN_TARGET = "test-workflow-ninja"
+        GRYPE_SCAN_TARGET = "${env.WORKSPACE}/test-workflow-ninja"
         GRYPE_REPORT = "grype-report.sarif"
     }
 
@@ -16,6 +16,15 @@ pipeline {
                 export PATH=${GRYPE_BINARY_DIR}:$PATH
                 curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b ${GRYPE_BINARY_DIR}
                 grype version
+                '''
+            }
+        }
+        
+        stage('List Files') {
+            steps {
+                sh '''
+                echo "📁 Current workspace contents:"
+                ls -la ${WORKSPACE}
                 '''
             }
         }
