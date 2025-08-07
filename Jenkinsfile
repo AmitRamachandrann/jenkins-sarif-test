@@ -1,49 +1,33 @@
 pipeline {
-    agent any
+    agent any 
 
     stages {
-        stage('Build and Test') {
-            parallel {
-                stage('Build') {
-                    stages {
-                        stage('Compile') {
-                            steps {
-                                echo 'Compiling...'
-                                sleep 5
-                            }
-                        }
-                        stage('Package') {
-                            steps {
-                                echo 'Packaging...'
-                                sleep 5
-                            }
-                        }
-                    }
-                }
-                stage('Test') {
-                    stages {
-                        stage('Unit Tests') {
-                            steps {
-                                echo 'Running Unit Tests...'
-                                sleep 5
-                            }
-                        }
-                        stage('Integration Tests') {
-                            steps {
-                                echo 'Running Integration Tests...'
-                                sleep 5
-                            }
-                        }
-                    }
-                }
+        stage('Install Jfrog') {
+            steps {
+                sh '''
+                echo "Installing Jfrog..."
+                curl -fL https://install-cli.jfrog.io | sh
+                jg -v
+                '''
+            }
+        }
+        
+        stage('List Files') {
+            steps {
+                sh '''
+                echo "📁 Current workspace contents:"
+                ls -la ${WORKSPACE}
+                '''
             }
         }
 
-        stage('Deploy') {
+        stage('Scan Folder with Jfrog') {
             steps {
-                echo 'Deploying...'
-                sleep 5
+                sh '''
+                jf audit --format=sarif
+                '''
             }
         }
+
     }
 }
