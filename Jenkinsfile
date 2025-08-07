@@ -6,6 +6,7 @@ pipeline {
             steps {
                 sh '''
                 echo "Installing Jfrog..."
+                uname -a
                 curl -fL https://install-cli.jfrog.io | sh
                 jg -v
                 '''
