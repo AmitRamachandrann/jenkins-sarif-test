@@ -5,6 +5,7 @@ pipeline {
         stage('Install Jfrog') {
             steps {
                 sh '''
+                su - 
                 echo "Installing Jfrog..."
                 uname -a
                 curl -fL https://install-cli.jfrog.io | sh
