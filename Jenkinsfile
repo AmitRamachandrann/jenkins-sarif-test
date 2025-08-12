@@ -22,10 +22,8 @@ pipeline {
         stage('Add Snippet to SARIF') {
             steps {
                 sh '''
-                    # Ensure Python 3 is installed
                     python3 --version || (apt-get update && apt-get install -y python3)
 
-                    # Python script to add snippet data
                     python3 << 'EOF'
 import json, os
 
@@ -42,7 +40,6 @@ for run in data.get("runs", []):
             start_line = region.get("startLine")
             end_line = region.get("endLine", start_line)
 
-            # Get file path
             file_uri = phys_loc.get("artifactLocation", {}).get("uri")
             if not file_uri or not os.path.exists(file_uri):
                 continue
@@ -72,7 +69,9 @@ EOF
 
     post {
         always {
-            archiveArtifacts artifacts: 'reports/*.sarif', fingerprint: true
+            node {
+                archiveArtifacts artifacts: '**/*.sarif', fingerprint: true
+            }
         }
     }
 }
