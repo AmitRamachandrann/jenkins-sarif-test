@@ -38,12 +38,12 @@ pipeline {
                 sh """
                     "${BRIDGE_CLI_DIR}/bridge-cli-bundle-linux64/bridge-cli" \
                         --stage blackducksca \
-                        --blackducksca.url="${BD_URL}" \
-                        --blackducksca.scan.full=true \
-                        --blackducksca.token="${BD_TOKEN}" \
-                        --product="BLACKDUCKSCA" \
-                        --blackducksca_reports_sarif_create=true \
-                        --blackducksca_reports_sarif_file_path="output/blackduck-sarif-report.sarif"
+                        blackducksca.url="${BD_URL}" \
+                        blackducksca.scan.full=true \
+                        blackducksca.token="${BD_TOKEN}" \
+                        product="BLACKDUCKSCA" \
+                        blackducksca_reports_sarif_create=true \
+                        blackducksca_reports_sarif_file_path="output/blackduck-sarif-report.sarif"
                 """
             }
         }
