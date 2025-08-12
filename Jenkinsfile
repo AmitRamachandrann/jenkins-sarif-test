@@ -32,13 +32,18 @@ pipeline {
             }
         }
 
+        stage('Prepare Bridge CLI') {
+            steps {
+                sh '''
+                    chmod -R +x bridge-cli/bridge-cli-bundle-linux64/adapters
+                '''
+            }
+        }
+
 
         stage('Run Black Duck Bridge CLI with SARIF Output') {
             steps {
                 sh """
-                    # Fix execute permissions for all adapter binaries
-                    find bridge-cli/bridge-cli-bundle-linux64/adapters -type f -exec chmod +x {}; true
-
                     "${BRIDGE_CLI_DIR}/bridge-cli-bundle-linux64/bridge-cli" \
                         --stage blackducksca \
                         blackducksca.url="${BD_URL}" \
