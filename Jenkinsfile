@@ -9,9 +9,7 @@ pipeline {
         stage('Install Snyk CLI') {
             steps {
                 sh '''
-                    # Install Snyk CLI (Linux example)
-                    curl -sL https://snyk.io/install | bash
-                    export PATH="$HOME/.snyk/bin:$PATH"
+                    npm install -g snyk
                     snyk --version
                 '''
             }
