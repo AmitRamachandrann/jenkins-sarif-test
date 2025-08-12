@@ -62,9 +62,9 @@ pipeline {
     stage('Add Snippet to SARIF') {
       steps {
         sh '''
-          python3 --version || (apt-get update && apt-get install -y python3)
+          $PYTHON_DIR/bin/python3.11 --version 
 
-          python3 << EOF
+          $PYTHON_DIR/bin/python3.11 << EOF
 import json, os
 
 sarif_path = "snyk-results.sarif"
