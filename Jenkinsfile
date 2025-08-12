@@ -87,11 +87,7 @@ for run in data.get("runs", []):
                 with open(file_uri, "r", encoding="utf-8", errors="ignore") as src:
                     lines = src.readlines()
                     snippet_text = "".join(lines[start_line-1:end_line])
-                    phys_loc["contextRegion"] = {
-                        "startLine": start_line,
-                        "endLine": end_line,
-                        "snippet": {"text": snippet_text}
-                    }
+                    region["snippet"] = {"text": snippet_text}
             except Exception as e:
                 print(f"Warning: Could not read {file_uri} - {e}")
 
