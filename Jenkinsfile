@@ -25,7 +25,7 @@ pipeline {
           export PATH=/tmp:$PATH
 
           /tmp/snyk auth $SNYK_TOKEN
-          /tmp/snyk code test --sarif-file-output=snyk-results.sarif || true
+          /tmp/snyk code test ./jenkins-sarif-test --sarif-file-output=snyk-results.sarif || true
         '''
       }
     }
