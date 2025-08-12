@@ -3,6 +3,9 @@ pipeline {
 
   environment {
     SNYK_TOKEN = credentials('snyk-api-secret')
+    PYTHON_URL = "https://github.com/indygreg/python-build-standalone/releases/download/20240107/cpython-3.11.7+20240107-x86_64-unknown-linux-gnu-install_only.tar.gz"
+    PYTHON_DIR = "${env.WORKSPACE}/python"
+    VENV_DIR = "${env.WORKSPACE}/venv"
   }
 
   stages {
@@ -32,6 +35,29 @@ pipeline {
                 sh 'cat snyk-results.sarif'
             }
         }
+
+    stage('Download Prebuilt Python') {
+            steps {
+                echo ":arrow_down: Downloading prebuilt Python binary..."
+                sh '''
+                    mkdir -p $PYTHON_DIR
+                    cd $PYTHON_DIR
+                    curl -L -o python.tar.gz $PYTHON_URL
+                    tar -xzf python.tar.gz --strip-components=1
+                    echo ":white_check_mark: Python extracted to: $PYTHON_DIR"
+                '''
+            }
+        }
+
+        // Step 2: Verify Python & Pip installation
+    stage('Verify Python & Pip') {
+            steps {
+                sh '''
+                    $PYTHON_DIR/bin/python3.11 --version
+                    $PYTHON_DIR/bin/pip3.11 --version
+                '''
+            }
+    }
 
     stage('Add Snippet to SARIF') {
       steps {
