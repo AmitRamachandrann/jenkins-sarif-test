@@ -38,13 +38,22 @@ pipeline {
                 sh """
                     "${BRIDGE_CLI_DIR}/bridge-cli-bundle-linux64/bridge-cli" \
                         --stage detect \
-                        --detect.project.name="${DETECT_PROJECT_NAME}" \
-                        --detect.project.version.name="${DETECT_VERSION_NAME}" \
-                        --detect.output.path="${WORKSPACE}/output" \
-                        --detect.blackduck.url="${BD_URL}" \
-                        --detect.blackduck.api.token="${BD_TOKEN}" \
-                        --detect.output.format=SARIF
+                        --blackducksca_url="${BD_URL}" \
+                        --blackducksca_token="${BD_TOKEN}" \
+                        --product= "BLACKDUCKSCA"
+                        --blackducksca_reports_sarif_create=true \
+                        --blackducksca_reports_sarif_file_path="output/blackduck-sarif-report.sarif"
                 """
+            }
+        }
+
+        stage('Check the SARIF Report') {
+            steps {
+                sh '''
+                    echo "Checking SARIF report..."
+                    ls -l output/*.sarif
+                    cat output/*.sarif
+                '''
             }
         }
 
