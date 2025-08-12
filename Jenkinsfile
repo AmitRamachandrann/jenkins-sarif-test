@@ -1,17 +1,12 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'golang:1.21' // official Go image
+            args '-u root:root' // so you can install other packages if needed
+        }
+    }
 
     stages {
-
-        stage('Install Go') {
-            steps {
-                sh '''
-                    apt-get update
-                    apt-get install -y golang
-                    go version
-                '''
-            }
-        }
 
         stage('Snyk Code Scan') {
             steps {
