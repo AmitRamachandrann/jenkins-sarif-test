@@ -1,12 +1,18 @@
 pipeline {
-    agent {
-        docker {
-            image 'golang:1.21' // official Go image
-            args '-u root:root' // so you can install other packages if needed
-        }
-    }
+    agent any
 
     stages {
+        stage('Verify Go Installation') {
+            agent {
+                docker {
+                    image 'golang:1.21'
+                    args '-u root:root'
+                }
+            }
+            steps {
+                sh 'go version'
+            }
+        }
 
         stage('Snyk Code Scan') {
             steps {
@@ -29,6 +35,12 @@ pipeline {
         // }
 
         stage('Add Snippet to SARIF') {
+            agent {
+                docker {
+                    image 'golang:1.21'
+                    args '-u root:root'
+                }
+            }
             steps {
                 sh '''
                     python3 --version || (apt-get update && apt-get install -y python3)
