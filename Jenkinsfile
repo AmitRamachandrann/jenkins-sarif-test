@@ -2,10 +2,27 @@ pipeline {
     agent any
 
     environment {
-        SNYK_TOKEN = credentials('SNYK_PLUGIN_TOKEN') 
+        SNYK_TOKEN = credentials('cloudbees-compliance-partner-development') 
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Snyk Test') {
+           steps {
+               script {
+                   // Run Snyk test
+                   withCredentials([string(credentialsId: 'your-snyk-api-token', variable: 'SNYK_TOKEN')]) {
+                       sh 'snyk code test --token=$SNYK_TOKEN'
+                   }
+               }
+           }
+       }
+
         stage('Snyk Code Scan') {
             steps {
                 snykSecurity(
