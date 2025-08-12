@@ -1,37 +1,38 @@
 pipeline {
-    agent any
+  agent any
 
-    stages {
+  environment {
+    SNYK_TOKEN = credentials('snyk-api-token')
+  }
 
-        stage('install go and Snyk Code Scan') {
-            steps {
-                sh '''
-                GO_VERSION=1.21.2
-                curl -LO https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
-                rm -rf /tmp/go
-                tar -C /tmp -xzf go${GO_VERSION}.linux-amd64.tar.gz
-                export PATH=/tmp/go/bin:$PATH
-                go version
-                '''
-           
+  stages {
+    stage('Install Go and Snyk CLI') {
+      steps {
+        sh '''
+          GO_VERSION=1.21.2
+          curl -LO https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
+          rm -rf /tmp/go
+          tar -C /tmp -xzf go${GO_VERSION}.linux-amd64.tar.gz
+          export PATH=/tmp/go/bin:$PATH
 
-                snykSecurity(
-                    snykInstallation: 'Default',
-                    snykTokenId: 'snyk-api-token',
-                    failOnIssues: false,
-                    organisation: 'cbp-calculi-corp',
-                    projectName: 'my-jenkins-project',
-                    additionalArguments: '--sarif-file-output=snyk-results.sarif'
-                )
-            }
-        }
+          # Install NodeJS and npm if needed for Snyk CLI (or use official Snyk binary)
+          # For simplicity, download standalone Snyk binary:
+          curl -Lo /tmp/snyk https://static.snyk.io/cli/latest/snyk-linux
+          chmod +x /tmp/snyk
+          export PATH=/tmp:$PATH
 
-        stage('Add Snippet to SARIF') {
-            steps {
-                sh '''
-                    python3 --version || (apt-get update && apt-get install -y python3)
+          /tmp/snyk auth $SNYK_TOKEN
+          /tmp/snyk code test --sarif-file-output=snyk-results.sarif
+        '''
+      }
+    }
 
-                    python3 << 'EOF'
+    stage('Add Snippet to SARIF') {
+      steps {
+        sh '''
+          python3 --version || (apt-get update && apt-get install -y python3)
+
+          python3 << EOF
 import json, os
 
 sarif_path = "snyk-results.sarif"
@@ -67,10 +68,9 @@ with open(sarif_path, "w", encoding="utf-8") as f:
     json.dump(data, f, indent=2)
 
 print(f"Updated SARIF with snippet data: {sarif_path}")
-print(json.dumps(data, indent=2))
 EOF
-                '''
-            }
-        }
+        '''
+      }
     }
+  }
 }
