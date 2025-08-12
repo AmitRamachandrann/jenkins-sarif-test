@@ -23,10 +23,15 @@ pipeline {
 
           /tmp/snyk auth $SNYK_TOKEN
           /tmp/snyk code test --sarif-file-output=snyk-results.sarif
-          cat /tmp/snyk-results.sarif
         '''
       }
     }
+
+    stage('Display SARIF Report') {
+            steps {
+                sh 'cat snyk-results.sarif'
+            }
+        }
 
     stage('Add Snippet to SARIF') {
       steps {
