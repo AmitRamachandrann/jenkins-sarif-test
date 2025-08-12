@@ -14,16 +14,18 @@ pipeline {
             steps {
                 sh '''
                     set -e
-                    mkdir -p "${BRIDGE_CLI_DIR}"
+                    BRIDGE_DIR="${WORKSPACE}/bridge-cli"
+                    mkdir -p "$BRIDGE_DIR"
 
-                    # Download Bridge CLI zip
-                    curl -sL https://detect.synopsys.com/bridge/ci/latest/linux64.zip -o bridge.zip
+                    # Download with error check
+                    curl -f -L "https://repo.blackduck.com/bds-integrations-release/com/blackduck/integration/bridge/binaries/bridge-cli-bundle/latest/bridge-cli-bundle-linux64.zip" \
+                        -o bridge.zip
 
-                    # Extract using 'jar' (built into Java)
-                    (cd "${BRIDGE_CLI_DIR}" && jar -xf ../bridge.zip)
+                    # Extract with jar (no unzip needed)
+                    (cd "$BRIDGE_DIR" && jar -xf ../bridge.zip)
 
-                    echo "Bridge CLI extracted to: ${BRIDGE_CLI_DIR}"
-                    "${BRIDGE_CLI_DIR}/bridge" --version
+                    # Verify
+                    "$BRIDGE_DIR/synopsys-bridge" --version
                 '''
             }
         }
