@@ -41,7 +41,6 @@ pipeline {
                         blackducksca.url="${BD_URL}" \
                         blackducksca.scan.full=true \
                         blackducksca.token="${BD_TOKEN}" \
-                        product="BLACKDUCKSCA" \
                         blackducksca_reports_sarif_create=true \
                         blackducksca_reports_sarif_file_path="output/blackduck-sarif-report.sarif"
                 """
