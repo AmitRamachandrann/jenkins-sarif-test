@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        SNYK_TOKEN = credentials('synk-api-token') 
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -15,11 +11,11 @@ pipeline {
         stage('Snyk Code Scan') {
             steps {
                 snykSecurity(
-                    snykInstallation: 'Default',          
-                    snykTokenId: 'synk-api-token',            
-                    failOnIssues: false,                   
-                    organisation: 'cbp-calculi-corp',         
-                    projectName: 'my-jenkins-project',     
+                    snykInstallation: 'Default',
+                    snykTokenId: credentials('synk-api-token'),
+                    failOnIssues: false,
+                    organisation: 'cbp-calculi-corp',
+                    projectName: 'my-jenkins-project',
                     additionalArguments: '--sarif-file-output=snyk-results.sarif'
                 )
             }
