@@ -23,6 +23,7 @@ pipeline {
 
           /tmp/snyk auth $SNYK_TOKEN
           /tmp/snyk code test --sarif-file-output=snyk-results.sarif
+          cat /tmp/snyk-results.sarif
         '''
       }
     }
