@@ -23,27 +23,19 @@ pipeline {
                     (cd "$BRIDGE_CLI_DIR" && jar -xf ../bridge.zip)
 
                     # check if the binary exists
-                    ls -l ${BRIDGE_CLI_DIR}
+                    ls -lrt ${BRIDGE_CLI_DIR}
 
                     # Verify
-                    "$BRIDGE_CLI_DIR/bridge" --version
+                    "$BRIDGE_CLI_DIR/bridge-cli-bundle-linux64/bridge-cli" --version
                 '''
             }
         }
 
-        stage('Check the binary') {
-            steps {
-                sh """
-                    echo "Checking Bridge CLI binary..."
-                    ls -l ${BRIDGE_CLI_DIR}
-                """
-            }
-        }
 
         stage('Run Black Duck Bridge CLI with SARIF Output') {
             steps {
                 sh """
-                    "${BRIDGE_CLI_DIR}/bridge" \
+                    "${BRIDGE_CLI_DIR}/bridge-cli-bundle-linux64/bridge-cli" \
                         --stage detect \
                         --detect.project.name="${DETECT_PROJECT_NAME}" \
                         --detect.project.version.name="${DETECT_VERSION_NAME}" \
