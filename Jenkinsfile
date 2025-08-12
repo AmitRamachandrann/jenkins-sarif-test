@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SNYK_TOKEN = credentials('cloudbees-compliance-partner-development') 
+        SNYK_TOKEN = credentials('snyk-api-token') 
     }
 
     stages {
@@ -12,16 +12,23 @@ pipeline {
             }
         }
 
-        stage('Snyk Code Scan') {
+        // stage('Snyk Code Scan') {
+        //     steps {
+        //         snykSecurity(
+        //             snykInstallation: 'Default',          
+        //             snykTokenId: 'SNYK_TOKEN',            
+        //             failOnIssues: false,                   
+        //             organisation: 'cbp-calculi-corp',         
+        //             projectName: 'my-jenkins-project',     
+        //             additionalArguments: '--sarif-file-output=snyk-results.sarif'
+        //         )
+        //     }
+        // }
+
+        stage('Snyk Scan') {
             steps {
-                snykSecurity(
-                    snykInstallation: 'Default',          
-                    snykTokenId: 'SNYK_TOKEN',            
-                    failOnIssues: false,                   
-                    organisation: 'cbp-calculi-corp',         
-                    projectName: 'my-jenkins-project',     
-                    additionalArguments: '--sarif-file-output=snyk-results.sarif'
-                )
+                sh 'snyk auth $SNYK_TOKEN'
+                sh 'snyk code test --sarif-file-output=snyk-sarif.json'
             }
         }
 
@@ -33,7 +40,7 @@ pipeline {
                     python3 << 'EOF'
 import json, os
 
-sarif_path = "snyk-results.sarif"
+sarif_path = "snyk-sarif.json"
 
 with open(sarif_path, "r", encoding="utf-8") as f:
     data = json.load(f)
