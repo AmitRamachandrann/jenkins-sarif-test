@@ -46,7 +46,7 @@ pipeline {
                 sh """
                     "${BRIDGE_CLI_DIR}/bridge-cli-bundle-linux64/bridge-cli" \
                         --stage blackducksca \
-                        blackducksca.url="${BD_URL}" \
+                        blackducksca.url="https://blackduck.saas-qa.beescloud.com/" \
                         blackducksca.scan.full=true \
                         blackducksca.token="${BD_TOKEN}" \
                         blackducksca_reports_sarif_create=true \
