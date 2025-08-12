@@ -14,6 +14,7 @@ pipeline {
         stage('Download Bridge CLI') {
             steps {
                 sh """
+                    apk add --no-cache unzip
                     mkdir -p ${BRIDGE_CLI_DIR}
                     curl -sL https://detect.synopsys.com/bridge/ci/latest/linux64.zip -o bridge.zip
                     unzip -o bridge.zip -d ${BRIDGE_CLI_DIR}
