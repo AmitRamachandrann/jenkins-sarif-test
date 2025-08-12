@@ -12,25 +12,25 @@ pipeline {
             }
         }
 
-        // stage('Snyk Code Scan') {
-        //     steps {
-        //         snykSecurity(
-        //             snykInstallation: 'Default',          
-        //             snykTokenId: 'SNYK_TOKEN',            
-        //             failOnIssues: false,                   
-        //             organisation: 'cbp-calculi-corp',         
-        //             projectName: 'my-jenkins-project',     
-        //             additionalArguments: '--sarif-file-output=snyk-results.sarif'
-        //         )
-        //     }
-        // }
-
-        stage('Snyk Scan') {
+        stage('Snyk Code Scan') {
             steps {
-                sh 'snyk auth $SNYK_TOKEN'
-                sh 'snyk code test --sarif-file-output=snyk-sarif.json'
+                snykSecurity(
+                    snykInstallation: 'Default',          
+                    snykTokenId: 'SNYK_TOKEN',            
+                    failOnIssues: false,                   
+                    organisation: 'cbp-calculi-corp',         
+                    projectName: 'my-jenkins-project',     
+                    additionalArguments: '--sarif-file-output=snyk-results.sarif'
+                )
             }
         }
+
+        // stage('Snyk Scan') {
+        //     steps {
+        //         sh 'snyk auth $SNYK_TOKEN'
+        //         sh 'snyk code test --sarif-file-output=snyk-results.sarif'
+        //     }
+        // }
 
         stage('Add Snippet to SARIF') {
             steps {
@@ -40,7 +40,7 @@ pipeline {
                     python3 << 'EOF'
 import json, os
 
-sarif_path = "snyk-sarif.json"
+sarif_path = "snyk-results.sarif"
 
 with open(sarif_path, "r", encoding="utf-8") as f:
     data = json.load(f)
