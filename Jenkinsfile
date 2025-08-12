@@ -27,8 +27,6 @@ pipeline {
             # make scan dir
             mkdir temp_scan_dir
             cp main.go go.mod go.sum README.md Dockerfile* temp_scan_dir/
-            cd temp_scan_dir
-            snyk test .
 
             /tmp/snyk auth $SNYK_TOKEN
             /tmp/snyk code test ./temp_scan_dir --sarif-file-output=snyk-results.sarif || true
@@ -111,10 +109,10 @@ EOF
       }
     }
 
-    //  stage('Display SARIF Report') {
-    //         steps {
-    //             sh 'cat snyk-results.sarif'
-    //         }
-    //     }
+     stage('Display SARIF Report') {
+            steps {
+                sh 'cat snyk-results.sarif'
+            }
+        }
   }
 }
