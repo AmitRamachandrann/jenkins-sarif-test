@@ -4,15 +4,13 @@ pipeline {
     stages {
         stage('Verify Go Installation') {
             agent {
-                docker {
-                    image 'golang:1.21'
-                    args '-u root:root'
-                }
+                label 'docker-go'
             }
             steps {
                 sh 'go version'
             }
         }
+    
 
         stage('Snyk Code Scan') {
             steps {
@@ -36,10 +34,7 @@ pipeline {
 
         stage('Add Snippet to SARIF') {
             agent {
-                docker {
-                    image 'golang:1.21'
-                    args '-u root:root'
-                }
+                label 'docker-go'
             }
             steps {
                 sh '''
