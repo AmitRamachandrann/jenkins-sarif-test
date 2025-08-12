@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SNYK_TOKEN = credentials('cloudbees-compliance-partner-development') 
+        SNYK_TOKEN = credentials('SNYK_PLUGIN_TOKEN') 
     }
 
     stages {
@@ -12,7 +12,7 @@ pipeline {
                     snykInstallation: 'Default',          
                     snykTokenId: 'SNYK_TOKEN',            
                     failOnIssues: false,                   
-                    organisation: 'SnykTestOrg',         
+                    organisation: 'cbp-cloudbees-jio',         
                     projectName: 'my-jenkins-project',     
                     additionalArguments: '--sarif-file-output=snyk-results.sarif'
                 )
