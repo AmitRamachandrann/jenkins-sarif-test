@@ -1,48 +1,45 @@
 pipeline {
     agent any
 
+    environment {
+        BRIDGE_CLI_VERSION = "latest" 
+        BRIDGE_CLI_DIR = "${WORKSPACE}/bridge-cli"
+        DETECT_PROJECT_NAME = "my-blackduck-project"
+        DETECT_VERSION_NAME = "1.0.0"
+        BD_URL = credentials('BLACKDUCK_URL')        // Jenkins credential: Black Duck server URL
+        BD_TOKEN = credentials('BLACKDUCK_API_TOKEN') // Jenkins credential: Black Duck API token
+    }
+
     stages {
-        stage('Build and Test') {
-            parallel {
-                stage('Build') {
-                    stages {
-                        stage('Compile') {
-                            steps {
-                                echo 'Compiling...'
-                                sleep 5
-                            }
-                        }
-                        stage('Package') {
-                            steps {
-                                echo 'Packaging...'
-                                sleep 5
-                            }
-                        }
-                    }
-                }
-                stage('Test') {
-                    stages {
-                        stage('Unit Tests') {
-                            steps {
-                                echo 'Running Unit Tests...'
-                                sleep 5
-                            }
-                        }
-                        stage('Integration Tests') {
-                            steps {
-                                echo 'Running Integration Tests...'
-                                sleep 5
-                            }
-                        }
-                    }
-                }
+        stage('Download Bridge CLI') {
+            steps {
+                sh """
+                    mkdir -p ${BRIDGE_CLI_DIR}
+                    curl -sL https://detect.synopsys.com/bridge/ci/latest/linux64.zip -o bridge.zip
+                    unzip -o bridge.zip -d ${BRIDGE_CLI_DIR}
+                    chmod +x ${BRIDGE_CLI_DIR}/synopsys-bridge
+                """
             }
         }
 
-        stage('Deploy') {
+        stage('Run Black Duck Bridge CLI with SARIF Output') {
             steps {
-                echo 'Deploying...'
-                sleep 5
+                sh """
+                    ${BRIDGE_CLI_DIR}/synopsys-bridge \
+                        --stage detect \
+                        --detect.project.name="${DETECT_PROJECT_NAME}" \
+                        --detect.project.version.name="${DETECT_VERSION_NAME}" \
+                        --detect.output.path="${WORKSPACE}/output" \
+                        --detect.blackduck.url="${BD_URL}" \
+                        --detect.blackduck.api.token="${BD_TOKEN}" \
+                        --detect.output.format=SARIF
+                """
+            }
+        }
+
+        stage('Archive SARIF Report') {
+            steps {
+                archiveArtifacts artifacts: 'output/*.sarif', fingerprint: true
             }
         }
     }
