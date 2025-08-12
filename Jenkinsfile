@@ -3,6 +3,16 @@ pipeline {
 
     stages {
 
+        stage('Install Go') {
+            steps {
+                sh '''
+                    apt-get update
+                    apt-get install -y golang
+                    go version
+                '''
+            }
+        }
+
         stage('Snyk Code Scan') {
             steps {
                 snykSecurity(
