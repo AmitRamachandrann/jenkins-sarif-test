@@ -12,17 +12,6 @@ pipeline {
             }
         }
 
-        stage('Snyk Test') {
-           steps {
-               script {
-                   // Run Snyk test
-                   withCredentials([string(credentialsId: 'your-snyk-api-token', variable: 'SNYK_TOKEN')]) {
-                       sh 'snyk code test --token=$SNYK_TOKEN'
-                   }
-               }
-           }
-       }
-
         stage('Snyk Code Scan') {
             steps {
                 snykSecurity(
