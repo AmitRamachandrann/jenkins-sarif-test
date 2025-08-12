@@ -14,11 +14,19 @@ pipeline {
         stage('Download Bridge CLI') {
             steps {
                 sh """
-                    apk add --no-cache unzip
                     mkdir -p ${BRIDGE_CLI_DIR}
-                    curl -sL https://detect.synopsys.com/bridge/ci/latest/linux64.zip -o bridge.zip
-                    unzip -o bridge.zip -d ${BRIDGE_CLI_DIR}
+                    curl -sL https://detect.synopsys.com/bridge/ci/latest/linux64.tar.gz -o bridge.tar.gz
+                    tar -xzf bridge.tar.gz -C ${BRIDGE_CLI_DIR}
                     chmod +x ${BRIDGE_CLI_DIR}/synopsys-bridge
+                """
+            }
+        }
+
+        stage('check the binary') {
+            steps {
+                sh """
+                    echo "Checking Bridge CLI binary..."
+                    ls -l ${BRIDGE_CLI_DIR}
                 """
             }
         }
