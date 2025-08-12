@@ -34,12 +34,6 @@ pipeline {
       }
     }
 
-    stage('Display SARIF Report') {
-            steps {
-                sh 'ls -lrt'
-            }
-        }
-
     stage('Download Prebuilt Python') {
             steps {
                 echo ":arrow_down: Downloading prebuilt Python binary..."
