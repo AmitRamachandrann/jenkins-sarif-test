@@ -9,7 +9,11 @@ pipeline {
         stage('Install Snyk CLI') {
             steps {
                 sh '''
-                    npm install -g snyk
+                    apt-get update -y
+                    apt-get install -y curl
+                    curl -sL https://static.snyk.io/cli/latest/snyk-linux -o snyk
+                    chmod +x snyk
+                    mv snyk /usr/local/bin/
                     snyk --version
                 '''
             }
