@@ -6,25 +6,17 @@ pipeline {
     }
 
     stages {
-        stage('Install Snyk CLI') {
+        stage('Snyk Code Scan') {
             steps {
-                sh '''
-                    curl -sL https://static.snyk.io/cli/latest/snyk-linux -o snyk
-                    chmod +x snyk
-                    mv snyk /usr/local/bin/
-                    snyk --version
-                '''
-            }
-        }
-
-        stage('Run Snyk Code Scan') {
-            steps {
-                sh '''
-                    mkdir -p reports
-                    export PATH="$HOME/.snyk/bin:$PATH"
-                    snyk auth "$SNYK_TOKEN"
-                    snyk code test --sarif > reports/snyk-code.sarif
-                '''
+                snykSecurity(
+                    snykInstallation: 'Default',          
+                    snykTokenId: 'SNYK_TOKEN',            
+                    failOnIssues: false,                   
+                    organisation: 'SnykTestOrg',         
+                    projectName: 'my-jenkins-project',     
+                    severityThreshold: 'low',              
+                    additionalArguments: '--sarif-file-output=snyk-results.sarif'
+                )
             }
         }
 
@@ -38,7 +30,7 @@ pipeline {
                     python3 << 'EOF'
 import json, os
 
-sarif_path = "reports/snyk-code.sarif"
+sarif_path = "snyk-results.sarif"
 
 with open(sarif_path, "r", encoding="utf-8") as f:
     data = json.load(f)
