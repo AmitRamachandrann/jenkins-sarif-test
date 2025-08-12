@@ -16,7 +16,7 @@ pipeline {
             steps {
                 snykSecurity(
                     snykInstallation: 'Default',          
-                    snykTokenId: 'SNYK_TOKEN',            
+                    snykTokenId: 'synk-api-token',            
                     failOnIssues: false,                   
                     organisation: 'cbp-calculi-corp',         
                     projectName: 'my-jenkins-project',     
