@@ -105,10 +105,10 @@ EOF
       }
     }
 
-     stage('Display SARIF Report') {
-            steps {
-                sh 'cat snyk-results.sarif'
-            }
-        }
+    //  stage('Display SARIF Report') {
+    //         steps {
+    //             sh 'cat snyk-results.sarif'
+    //         }
+    //     }
   }
 }
