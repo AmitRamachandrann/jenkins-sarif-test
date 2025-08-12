@@ -12,7 +12,7 @@ pipeline {
                     snykInstallation: 'Default',          
                     snykTokenId: 'SNYK_TOKEN',            
                     failOnIssues: false,                   
-                    organisation: 'cbp-cloudbees-jio',         
+                    organisation: 'cbp-calculi-corp',         
                     projectName: 'my-jenkins-project',     
                     additionalArguments: '--sarif-file-output=snyk-results.sarif'
                 )
