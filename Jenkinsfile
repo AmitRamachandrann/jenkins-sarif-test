@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     stages {
-        stage('Install Go') {
+
+        stage('install go and Snyk Code Scan') {
             steps {
                 sh '''
                 GO_VERSION=1.21.2
@@ -12,11 +13,8 @@ pipeline {
                 export PATH=/tmp/go/bin:$PATH
                 go version
                 '''
-            }
-        }
+           
 
-        stage('Snyk Code Scan') {
-            steps {
                 snykSecurity(
                     snykInstallation: 'Default',
                     snykTokenId: 'snyk-api-token',
@@ -27,13 +25,6 @@ pipeline {
                 )
             }
         }
-
-        // stage('Snyk Scan') {
-        //     steps {
-        //         sh 'snyk auth $SNYK_TOKEN'
-        //         sh 'snyk code test --sarif-file-output=snyk-results.sarif'
-        //     }
-        // }
 
         stage('Add Snippet to SARIF') {
             steps {
