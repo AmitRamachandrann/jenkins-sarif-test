@@ -25,6 +25,7 @@ pipeline {
             export PATH=/tmp:$PATH
 
             # make scan dir
+            rm -rf temp_scan_dir
             mkdir temp_scan_dir
             cp main.go go.mod go.sum README.md Dockerfile* temp_scan_dir/
 
