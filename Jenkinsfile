@@ -36,6 +36,7 @@ pipeline {
         stage('Run Black Duck Bridge CLI with SARIF Output') {
             steps {
                 sh """
+                    chmod -R +x ${BRIDGE_CLI_DIR}/bridge-cli/bridge-cli-bundle-linux64/adapters || true
                     "${BRIDGE_CLI_DIR}/bridge-cli-bundle-linux64/bridge-cli" \
                         --stage blackducksca \
                         blackducksca.url="${BD_URL}" \
