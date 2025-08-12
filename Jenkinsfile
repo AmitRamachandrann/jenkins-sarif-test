@@ -66,12 +66,4 @@ EOF
             }
         }
     }
-
-    post {
-        always {
-            node('any') {
-                archiveArtifacts artifacts: '**/*.sarif', fingerprint: true
-            }
-        }
-    }
 }
