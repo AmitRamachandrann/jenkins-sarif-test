@@ -2,15 +2,18 @@ pipeline {
     agent any
 
     stages {
-        stage('Verify Go Installation') {
-            agent {
-                label 'docker-go'
-            }
+        stage('Install Go') {
             steps {
-                sh 'go version'
+                sh '''
+                GO_VERSION=1.21.2
+                curl -LO https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
+                rm -rf /tmp/go
+                tar -C /tmp -xzf go${GO_VERSION}.linux-amd64.tar.gz
+                export PATH=/tmp/go/bin:$PATH
+                go version
+                '''
             }
         }
-    
 
         stage('Snyk Code Scan') {
             steps {
@@ -33,9 +36,6 @@ pipeline {
         // }
 
         stage('Add Snippet to SARIF') {
-            agent {
-                label 'docker-go'
-            }
             steps {
                 sh '''
                     python3 --version || (apt-get update && apt-get install -y python3)
