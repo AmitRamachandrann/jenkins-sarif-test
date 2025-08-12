@@ -5,6 +5,7 @@ pipeline {
         BRIDGE_CLI_DIR = "${WORKSPACE}/bridge-cli"
         DETECT_PROJECT_NAME = "my-blackduck-project"
         DETECT_VERSION_NAME = "1.0.0"
+        GO_VERSION="1.21.2"
         BD_URL = credentials('BLACKDUCK_URL') // or use credentials if you really want
         BD_TOKEN = credentials('BLACKDUCK_API_TOKEN') // must be 'Secret text'
     }
@@ -44,7 +45,7 @@ pipeline {
         stage('Run Black Duck Bridge CLI with SARIF Output') {
             steps {
                 sh """
-                    GO_VERSION=1.21.2
+                    
                     curl -LO https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
                     rm -rf /tmp/go
                     tar -C /tmp -xzf go${GO_VERSION}.linux-amd64.tar.gz
