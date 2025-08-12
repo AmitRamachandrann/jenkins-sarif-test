@@ -44,6 +44,12 @@ pipeline {
         stage('Run Black Duck Bridge CLI with SARIF Output') {
             steps {
                 sh """
+                    GO_VERSION=1.21.2
+                    curl -LO https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
+                    rm -rf /tmp/go
+                    tar -C /tmp -xzf go${GO_VERSION}.linux-amd64.tar.gz
+                    export PATH=/tmp/go/bin:$PATH
+
                     "${BRIDGE_CLI_DIR}/bridge-cli-bundle-linux64/bridge-cli" \
                         --stage blackducksca \
                         blackducksca.url="https://blackduck.saas-qa.beescloud.com/" \
