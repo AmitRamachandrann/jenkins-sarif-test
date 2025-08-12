@@ -12,20 +12,26 @@ pipeline {
     stage('Install Go and Snyk CLI') {
       steps {
         sh '''
-          GO_VERSION=1.21.2
-          curl -LO https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
-          rm -rf /tmp/go
-          tar -C /tmp -xzf go${GO_VERSION}.linux-amd64.tar.gz
-          export PATH=/tmp/go/bin:$PATH
+             GO_VERSION=1.21.2
+            curl -LO https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
+            rm -rf /tmp/go
+            tar -C /tmp -xzf go${GO_VERSION}.linux-amd64.tar.gz
+            export PATH=/tmp/go/bin:$PATH
 
-          # Install NodeJS and npm if needed for Snyk CLI (or use official Snyk binary)
-          # For simplicity, download standalone Snyk binary:
-          curl -Lo /tmp/snyk https://static.snyk.io/cli/latest/snyk-linux
-          chmod +x /tmp/snyk
-          export PATH=/tmp:$PATH
+             # Install NodeJS and npm if needed for Snyk CLI (or use official Snyk binary)
+            # For simplicity, download standalone Snyk binary:
+            curl -Lo /tmp/snyk https://static.snyk.io/cli/latest/snyk-linux
+            chmod +x /tmp/snyk
+            export PATH=/tmp:$PATH
 
-          /tmp/snyk auth $SNYK_TOKEN
-          /tmp/snyk code test ./jenkins-sarif-test --sarif-file-output=snyk-results.sarif || true
+            # make scan dir
+            mkdir temp_scan_dir
+            cp main.go go.mod go.sum README.md Dockerfile* temp_scan_dir/
+            cd temp_scan_dir
+            snyk test .
+
+            /tmp/snyk auth $SNYK_TOKEN
+            /tmp/snyk code test ./temp_scan_dir --sarif-file-output=snyk-results.sarif || true
         '''
       }
     }
