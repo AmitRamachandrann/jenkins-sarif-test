@@ -69,7 +69,7 @@ EOF
 
     post {
         always {
-            node {
+            node('any') {
                 archiveArtifacts artifacts: '**/*.sarif', fingerprint: true
             }
         }
