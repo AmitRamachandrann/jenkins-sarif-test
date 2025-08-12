@@ -37,7 +37,7 @@ pipeline {
             steps {
                 sh """
                     # Fix execute permissions for all adapter binaries
-                    find bridge-cli/bridge-cli-bundle-linux64/adapters -type f -exec chmod +x {} ; true
+                    find bridge-cli/bridge-cli-bundle-linux64/adapters -type f -exec chmod +x {}; true
 
                     "${BRIDGE_CLI_DIR}/bridge-cli-bundle-linux64/bridge-cli" \
                         --stage blackducksca \
