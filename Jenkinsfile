@@ -24,6 +24,7 @@ pipeline {
 
                     # check if the binary exists
                     ls -lrt ${BRIDGE_CLI_DIR}
+                    chmod +x "$BRIDGE_CLI_DIR"/bridge-cli-bundle-linux64/bridge-cli
 
                     # Verify
                     "$BRIDGE_CLI_DIR/bridge-cli-bundle-linux64/bridge-cli" --version
