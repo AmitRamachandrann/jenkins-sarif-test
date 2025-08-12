@@ -2,17 +2,12 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
 
         stage('Snyk Code Scan') {
             steps {
                 snykSecurity(
                     snykInstallation: 'Default',
-                    snykTokenId: 'synk-api-token',
+                    snykTokenId: 'snyk-api-token',
                     failOnIssues: false,
                     organisation: 'cbp-calculi-corp',
                     projectName: 'my-jenkins-project',
