@@ -13,19 +13,20 @@ pipeline {
         stage('Download and Extract Bridge CLI') {
             steps {
                 sh '''
-                    set -e
-                    BRIDGE_DIR="${WORKSPACE}/bridge-cli"
-                    mkdir -p "$BRIDGE_DIR"
+                    mkdir -p "$BRIDGE_CLI_DIR"
 
                     # Download with error check
                     curl -f -L "https://repo.blackduck.com/bds-integrations-release/com/blackduck/integration/bridge/binaries/bridge-cli-bundle/latest/bridge-cli-bundle-linux64.zip" \
                         -o bridge.zip
 
                     # Extract with jar (no unzip needed)
-                    (cd "$BRIDGE_DIR" && jar -xf ../bridge.zip)
+                    (cd "$BRIDGE_CLI_DIR" && jar -xf ../bridge.zip)
+
+                    # check if the binary exists
+                    ls -l ${BRIDGE_CLI_DIR}
 
                     # Verify
-                    "$BRIDGE_DIR/synopsys-bridge" --version
+                    "$BRIDGE_CLI_DIR/bridge" --version
                 '''
             }
         }
