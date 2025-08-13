@@ -1,33 +1,29 @@
 pipeline {
     agent {
-        kubernetes {
-            yaml '''
-apiVersion: v1
-kind: Pod
-spec:
-  containers:
-    - name: kaniko
-      image: gcr.io/kaniko-project/executor:latest
-    - name: trivy
-      image: aquasec/trivy:0.65.0
-      command:
-        - cat
-      tty: true
-  volumes:
-    - name: workspace
-      emptyDir: {}
-'''
+        docker {
+            image 'gcr.io/kaniko-project/executor:latest'
+            args "-v ${env.WORKSPACE}:/workspace"
         }
     }
+
     stages {
         stage('Trivy Image Scan with Kaniko') {
             steps {
-                container('kaniko') {
-                    sh '/kaniko/executor --dockerfile=Dockerfile --context=/home/jenkins/agent/workspace --no-push --tar-path=/home/jenkins/agent/workspace/image.tar'
-                }
-                container('trivy') {
-                    sh 'trivy image --input /home/jenkins/agent/workspace/image.tar --format sarif'
-                }
+                sh '''
+                # Build image with Kaniko and output as tarball
+                /kaniko/executor --dockerfile=Dockerfile --context=/workspace --no-push --tar-path=/workspace/image.tar
+
+                # Download Trivy if not present
+                if ! command -v trivy > /dev/null; then
+                  echo "Installing Trivy..."
+                  curl -sL https://github.com/aquasecurity/trivy/releases/download/v0.65.0/trivy_0.65.0_Linux-64bit.tar.gz | tar zxvf - -C /tmp
+                  mv /tmp/trivy ./trivy
+                  chmod +x ./trivy
+                fi
+
+                # Scan tarball with Trivy
+                ./trivy image --input /workspace/image.tar --format sarif
+                '''
             }
         }
     }
