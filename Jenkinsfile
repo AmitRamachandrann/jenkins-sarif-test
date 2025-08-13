@@ -52,15 +52,13 @@ pipeline {
                     export PATH=/tmp/go/bin:$PATH
 
                     "${BRIDGE_CLI_DIR}/bridge-cli-bundle-linux64/bridge-cli" \
-                        --stage detect,blackducksca \
-                        detect.blackduck.url="https://blackduck.saas-qa.beescloud.com" \
-                        detect.blackduck.api.token="${BD_TOKEN}" \
-                        detect.python.python3=true \
+                        --stage blackducksca \
                         blackducksca.url="https://blackduck.saas-qa.beescloud.com/" \
                         blackducksca.scan.full=true \
                         blackducksca.token="${BD_TOKEN}" \
                         blackducksca_reports_sarif_create=true \
-                        blackducksca_reports_sarif_file_path="output/blackduck-sarif-report.sarif"
+                        blackducksca_reports_sarif_file_path="output/blackduck-sarif-report.sarif" \
+                        blackducksca_reports_sarif_groupSCAIssues=false
                 """
             }
         }
