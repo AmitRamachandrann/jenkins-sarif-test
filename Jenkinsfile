@@ -1,16 +1,17 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'gcr.io/kaniko-project/executor:latest'
+            args "-v ${env.WORKSPACE}:/workspace"
+        }
+    }
 
     stages {
         stage('Trivy Image Scan with Kaniko') {
             steps {
                 sh '''
-                # Download Kaniko executor if not present
-                if [ ! -f ./kaniko-executor ]; then
-                  echo "Downloading Kaniko executor..."
-                  curl -sL https://github.com/GoogleContainerTools/kaniko/releases/download/v1.22.0/kaniko-linux-amd64 -o kaniko-executor
-                  chmod +x ./kaniko-executor
-                fi
+                # Build image with Kaniko and output as tarball
+                /kaniko/executor --dockerfile=Dockerfile --context=/workspace --no-push --tar-path=/workspace/image.tar
 
                 # Download Trivy if not present
                 if ! command -v trivy > /dev/null; then
@@ -20,11 +21,8 @@ pipeline {
                   chmod +x ./trivy
                 fi
 
-                # Build image with Kaniko and output as tarball
-                ./kaniko-executor --dockerfile=Dockerfile --context=$(pwd) --no-push --tar-path=image.tar
-
                 # Scan tarball with Trivy
-                ./trivy image --input image.tar --format sarif
+                ./trivy image --input /workspace/image.tar --format sarif
                 '''
             }
         }
