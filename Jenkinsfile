@@ -1,48 +1,33 @@
 pipeline {
-    agent any
-
-    stages {
-        stage('Build and Test') {
-            parallel {
-                stage('Build') {
-                    stages {
-                        stage('Compile') {
-                            steps {
-                                echo 'Compiling...'
-                                sleep 5
-                            }
-                        }
-                        stage('Package') {
-                            steps {
-                                echo 'Packaging...'
-                                sleep 5
-                            }
-                        }
-                    }
-                }
-                stage('Test') {
-                    stages {
-                        stage('Unit Tests') {
-                            steps {
-                                echo 'Running Unit Tests...'
-                                sleep 5
-                            }
-                        }
-                        stage('Integration Tests') {
-                            steps {
-                                echo 'Running Integration Tests...'
-                                sleep 5
-                            }
-                        }
-                    }
-                }
-            }
+    agent {
+        kubernetes {
+            yaml '''
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:latest
+    - name: trivy
+      image: aquasec/trivy:0.65.0
+      command:
+        - cat
+      tty: true
+  volumes:
+    - name: workspace
+      emptyDir: {}
+'''
         }
-
-        stage('Deploy') {
+    }
+    stages {
+        stage('Trivy Image Scan with Kaniko') {
             steps {
-                echo 'Deploying...'
-                sleep 5
+                container('kaniko') {
+                    sh '/kaniko/executor --dockerfile=Dockerfile --context=/home/jenkins/agent/workspace --no-push --tar-path=/home/jenkins/agent/workspace/image.tar'
+                }
+                container('trivy') {
+                    sh 'trivy image --input /home/jenkins/agent/workspace/image.tar --format sarif'
+                }
             }
         }
     }
