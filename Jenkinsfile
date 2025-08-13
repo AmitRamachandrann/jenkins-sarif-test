@@ -53,6 +53,9 @@ pipeline {
 
                     "${BRIDGE_CLI_DIR}/bridge-cli-bundle-linux64/bridge-cli" \
                         --stage detect,blackducksca \
+                        detect.blackduck.url="https://blackduck.saas-qa.beescloud.com" \
+                        detect.blackduck.api.token="${BD_TOKEN}" \
+                        detect.python.python3=true \
                         blackducksca.url="https://blackduck.saas-qa.beescloud.com/" \
                         blackducksca.scan.full=true \
                         blackducksca.token="${BD_TOKEN}" \
