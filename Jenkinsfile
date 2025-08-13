@@ -8,9 +8,6 @@ spec:
   containers:
     - name: kaniko
       image: gcr.io/kaniko-project/executor:latest
-      command:
-        - cat
-      tty: true
     - name: trivy
       image: aquasec/trivy:0.65.0
       command:
