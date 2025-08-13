@@ -52,7 +52,7 @@ pipeline {
                     export PATH=/tmp/go/bin:$PATH
 
                     "${BRIDGE_CLI_DIR}/bridge-cli-bundle-linux64/bridge-cli" \
-                        --stage blackducksca \
+                        --stage detect,blackducksca \
                         blackducksca.url="https://blackduck.saas-qa.beescloud.com/" \
                         blackducksca.scan.full=true \
                         blackducksca.token="${BD_TOKEN}" \
