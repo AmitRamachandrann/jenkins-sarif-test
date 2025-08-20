@@ -1,48 +1,93 @@
 pipeline {
     agent any
 
+    environment {
+        SONAR_HOST = "https://sonarqube.beescloud.com"
+        SONAR_TOKEN = credentials('sonarqube-token') 
+        PROJECT_KEY = "sarif-test-cli-02"
+        SCANNER_VERSION = "5.0.1.3006"
+        SCANNER_HOME = "${WORKSPACE}/sonar-scanner"
+    }
+
     stages {
-        stage('Build and Test') {
-            parallel {
-                stage('Build') {
-                    stages {
-                        stage('Compile') {
-                            steps {
-                                echo 'Compiling...'
-                                sleep 5
-                            }
-                        }
-                        stage('Package') {
-                            steps {
-                                echo 'Packaging...'
-                                sleep 5
-                            }
-                        }
-                    }
-                }
-                stage('Test') {
-                    stages {
-                        stage('Unit Tests') {
-                            steps {
-                                echo 'Running Unit Tests...'
-                                sleep 5
-                            }
-                        }
-                        stage('Integration Tests') {
-                            steps {
-                                echo 'Running Integration Tests...'
-                                sleep 5
-                            }
+        stage('Checkout') {
+            steps {
+                git url: 'git@github.com:your-org/your-repo.git', branch: 'main'
+            }
+        }
+
+        stage('Install SonarScanner CLI') {
+            steps {
+                sh """
+                    if [ ! -d "${SCANNER_HOME}" ]; then
+                      echo "Downloading Sonar Scanner CLI..."
+                      curl -sLo scanner.zip \\
+                        "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SCANNER_VERSION}-linux.zip"
+                      unzip -q scanner.zip
+                      mv sonar-scanner-${SCANNER_VERSION}-linux ${SCANNER_HOME}
+                      rm scanner.zip
+                    else
+                      echo "SonarScanner already installed."
+                    fi
+                """
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                sh """
+                    ${SCANNER_HOME}/bin/sonar-scanner \
+                      -Dsonar.projectKey=${PROJECT_KEY} \
+                      -Dsonar.sources=. \
+                      -Dsonar.host.url=${SONAR_HOST} \
+                      -Dsonar.login=${SONAR_TOKEN}
+                """
+            }
+        }
+
+        stage('Wait for Analysis') {
+            steps {
+                script {
+                    def reportTask = readFile '.scannerwork/report-task.txt'
+                    def ceTaskUrl = reportTask.readLines()
+                        .find { it.startsWith("ceTaskUrl=") }
+                        .replace("ceTaskUrl=", "")
+
+                    echo "Waiting for SonarQube CE task to complete: ${ceTaskUrl}"
+
+                    timeout(time: 5, unit: 'MINUTES') {
+                        waitUntil {
+                            def result = sh(
+                                script: "curl -s -u ${SONAR_TOKEN}: ${ceTaskUrl} | jq -r '.task.status'",
+                                returnStdout: true
+                            ).trim()
+                            echo "SonarQube CE task status: ${result}"
+                            return (result == "SUCCESS")
                         }
                     }
                 }
             }
         }
 
-        stage('Deploy') {
+        stage('Fetch Issues & Hotspots') {
             steps {
-                echo 'Deploying...'
-                sleep 5
+                script {
+                    def issues = sh(
+                        script: """curl -s -u ${SONAR_TOKEN}: \\
+                          "${SONAR_HOST}/api/issues/search?componentKeys=${PROJECT_KEY}&ps=500" | jq '.'""",
+                        returnStdout: true
+                    )
+                    echo "===== Issues ====="
+                    echo issues
+
+                    def hotspots = sh(
+                        script: """curl -s -u ${SONAR_TOKEN}: \\
+                          "${SONAR_HOST}/api/hotspots/search?projectKey=${PROJECT_KEY}&ps=500" | jq '.'""",
+                        returnStdout: true
+                    )
+                    echo "===== Security Hotspots ====="
+                    echo hotspots
+                }
             }
         }
     }
