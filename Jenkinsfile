@@ -19,7 +19,9 @@ pipeline {
 
                     if [ ! -d "${SCANNER_HOME}" ]; then
                     echo "Downloading Sonar Scanner CLI..."
-                    curl -sLo scanner.tgz "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SCANNER_VERSION}-linux.tar.gz"
+                    curl -sL -o scanner.tgz https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.tar.gz
+                    file scanner.tgz
+                    head -n 20 scanner.tgz
                     tar -xzf scanner.tgz
                     rm scanner.tgz
                     else
