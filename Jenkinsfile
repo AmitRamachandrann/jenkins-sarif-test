@@ -19,11 +19,16 @@ pipeline {
 
                     if [ ! -d "${SCANNER_HOME}" ]; then
                     echo "Downloading Sonar Scanner CLI..."
-                    curl -sL -o scanner.tgz https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.tar.gz
-                    
+                    curl -sL -o scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
 
-                    tar -xzf scanner.tgz
-                    rm scanner.tgz
+                    wget https://busybox.net/downloads/binaries/1.36.1-x86_64-linux-musl/busybox -O busybox
+                    chmod +x busybox
+                    ln -s busybox unzip
+
+                    # Use it
+                    ./unzip scanner.zip
+
+                    rm scanner.zip
                     else
                     echo "SonarScanner already installed."
                     fi
