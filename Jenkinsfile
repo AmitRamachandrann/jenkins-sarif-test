@@ -54,7 +54,7 @@ pipeline {
         stage('Get user token') {
             steps {
                 script {
-                    def user_token = sh(script: "curl -s -u ${SONAR_TOKEN}: ${SONAR_HOST}/api/user_tokens/generate?name=${PROJECT_KEY}", returnStdout: true).trim()
+                    def user_token = sh(script: "curl --request POST -s -u ${SONAR_TOKEN}: ${SONAR_HOST}/api/user_tokens/generate?name=${PROJECT_KEY}", returnStdout: true).trim()
                     def extracted_token = sh(script: "echo ${user_token} | ${JQ} -r '.token'", returnStdout: true).trim()
                     echo "Generated user token: ${extracted_token}"
                 }
