@@ -14,22 +14,23 @@ pipeline {
         stage('Install SonarScanner CLI') {
             steps {
                 sh """
-                    SCANNER_VERSION=5.0.1.3006
-                    SCANNER_HOME=sonar-scanner-${SCANNER_VERSION}-linux
-
-                    if [ ! -d "${SCANNER_HOME}" ]; then
-                    echo "Downloading Sonar Scanner CLI..."
-                    curl -sL -o scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
 
                     curl -sL https://busybox.net/downloads/binaries/1.36.1-x86_64-linux-musl/busybox -o busybox
 
                     chmod +x busybox
                     ln -s busybox unzip
 
-                    # Use it
-                    ./unzip scanner.zip
+                    SCANNER_VERSION=5.0.1.3006
+                    SCANNER_HOME=sonar-scanner-${SCANNER_VERSION}-linux
 
-                    rm scanner.zip
+                    if [ ! -d "${SCANNER_HOME}" ]; then
+                    echo "Downloading Sonar Scanner CLI..."
+                    curl -sLo scanner-sq.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
+
+                    # Use it
+                    ./unzip scanner-sq.zip
+
+                    rm scanner-sq.zip
                     else
                     echo "SonarScanner already installed."
                     fi
