@@ -21,12 +21,7 @@ pipeline {
                     echo "Downloading Sonar Scanner CLI..."
                     curl -sL -o scanner.tgz https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.tar.gz
                     
-                    # Validate archive (fail early if not valid tar.gz)
-                    if ! tar -tzf scanner.tgz > /dev/null 2>&1; then
-                        echo "❌ Downloaded file is not a valid tar.gz. Aborting."
-                        exit 1
-                    fi
-                    
+
                     tar -xzf scanner.tgz
                     rm scanner.tgz
                     else
