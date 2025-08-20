@@ -6,7 +6,7 @@ pipeline {
         SONAR_TOKEN = credentials('sonarqube-token') 
         PROJECT_KEY = "sarif-test-cli-02"
         SCANNER_VERSION = "5.0.1.3006"
-        SCANNER_HOME = "${WORKSPACE}/sonar-scanner"
+        SCANNER_HOME = "${WORKSPACE}/sonar-scanner-5.0.1.3006"
     }
 
     stages {
@@ -26,9 +26,8 @@ pipeline {
                     if [ ! -d "${SCANNER_HOME}" ]; then
                     echo "Downloading Sonar Scanner CLI..."
                     curl -sLo scanner-sq.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
-                    cat scanner-sq.zip
                     # Use it
-                    ./unzip scanner-sq.zip
+                    ./busybox unzip scanner-sq.zip
                     rm scanner-sq.zip
                     else
                     echo "SonarScanner already installed."
