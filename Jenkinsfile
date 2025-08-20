@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        SONAR_HOST = "https://sonarqube.beescloud.com"
-        SONAR_TOKEN = credentials('sonarqube-token') 
-        PROJECT_KEY = "sarif-test-cli-02"
+        SONAR_HOST = "https://sonarqube.saas-preprod.beescloud.com"
+        SONAR_TOKEN = credentials('sonarqube-preprod-token') 
+        PROJECT_KEY = "37a13d608f957d98b2f8349f3dd8137bac695d1c340303a09693dfb9f65838e1"
         SCANNER_VERSION = "5.0.1.3006"
         SCANNER_HOME = "${WORKSPACE}/sonar-scanner-5.0.1.3006"
         JAVA_HOME = "${WORKSPACE}/jdk17"
