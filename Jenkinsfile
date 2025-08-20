@@ -30,6 +30,8 @@ pipeline {
                     curl -sLo scanner.tgz \
                     https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.tar.gz
 
+                    cat scanner.tgz
+
                     # Use it
                     ./unzip scanner.tgz
                     # ./unzip scanner-sq.zip
