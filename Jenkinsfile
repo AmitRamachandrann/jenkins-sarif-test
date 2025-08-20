@@ -4,12 +4,13 @@ pipeline {
     environment {
         SONAR_HOST = "https://sonarqube.saas-preprod.beescloud.com"
         SONAR_TOKEN = credentials('sonarqube-preprod-token') 
-        PROJECT_KEY = "37a13d608f957d98b2f8349f3dd8137bac695d1c340303a09693dfb9f65838e1"
+        PROJECT_KEY = "sarif_test_001"
         SCANNER_VERSION = "5.0.1.3006"
         SCANNER_HOME = "${WORKSPACE}/sonar-scanner-5.0.1.3006"
         JAVA_HOME = "${WORKSPACE}/jdk17"
         PATH = "${WORKSPACE}/jdk17/bin:${PATH}"
         JQ = "${WORKSPACE}/bin/jq"
+        USER_TOKEN = "${extracted_token}"
     }
 
     stages {
@@ -50,6 +51,16 @@ pipeline {
             }
         }
 
+        stage('Get user token') {
+            steps {
+                script {
+                    def user_token = sh(script: "curl -s -u ${SONAR_TOKEN}: ${SONAR_HOST}/api/user_tokens/generate?name=${PROJECT_KEY}", returnStdout: true).trim()
+                    def extracted_token = sh(script: "echo ${user_token} | ${JQ} -r '.token'", returnStdout: true).trim()
+                    echo "Generated user token: ${extracted_token}"
+                }
+            }
+        }
+
 
         stage('SonarQube Analysis') {
             steps {
@@ -59,7 +70,7 @@ pipeline {
                       -Dsonar.projectKey=$PROJECT_KEY \
                       -Dsonar.sources=. \
                       -Dsonar.host.url=$SONAR_HOST \
-                      -Dsonar.login=$SONAR_TOKEN
+                      -Dsonar.login=$USER_TOKEN
                 """
             }
         }
