@@ -198,7 +198,7 @@ pipeline {
                             }
                             }
                         ]
-                        }' | jq -s 'reduce .[] as \$item (input; .runs[0].results += [\$item])' sonar-results.sarif > tmp.sarif && mv tmp.sarif sonar-results.sarif
+                        }' | ${JQ} -s 'reduce .[] as \$item (input; .runs[0].results += [\$item])' sonar-results.sarif > tmp.sarif && mv tmp.sarif sonar-results.sarif
                     """
                     cat sonar-results.sarif
                 }
