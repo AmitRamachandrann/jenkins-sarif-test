@@ -54,11 +54,50 @@ pipeline {
         stage('Get user token') {
             steps {
                 script {
-                    def user_token = sh(script: "curl -X POST -s -u ${SONAR_TOKEN}: ${SONAR_HOST}/api/user_tokens/generate?name=${PROJECT_KEY} | ${JQ} -r '.token'", returnStdout: true).trim()
-                    echo "Generated user token: ${user_token}"
+                    def response = sh(
+                        script: """curl -s -u ${SONAR_TOKEN}: \
+                        "${SONAR_HOST}/api/user_tokens/generate?name=${PROJECT_KEY}" """,
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Raw API response: ${response}"
+
+                    def user_token = sh(
+                        script: """echo '${response}' | ${JQ} -r '.token // empty'""",
+                        returnStdout: true
+                    ).trim()
+
+                    if (user_token) {
+                        echo "✅ Generated user token: ${user_token}"
+                    } else {
+                        echo "⚠️ No token returned, checking if it already exists..."
+                        // fallback: try to list tokens and extract one
+                        def existing = sh(
+                            script: """curl -s -u ${SONAR_TOKEN}: \
+                            "${SONAR_HOST}/api/user_tokens/search?login=admin" | ${JQ} -r '.userTokens[] | select(.name == "${PROJECT_KEY}") | .token'""",
+                            returnStdout: true
+                        ).trim()
+
+                        if (existing) {
+                            echo "♻️ Re-using existing token: ${existing}"
+                            user_token = existing
+                        } else {
+                            error "❌ Failed to create or find a token for ${PROJECT_KEY}"
+                        }
+                    }
                 }
             }
         }
+
+
+        // stage('Get user token') {
+        //     steps {
+        //         script {
+        //             def user_token = sh(script: "curl -X POST -s -u ${SONAR_TOKEN}: ${SONAR_HOST}/api/user_tokens/generate?name=${PROJECT_KEY} | ${JQ} -r '.token'", returnStdout: true)
+        //             echo "Generated user token: ${user_token}"
+        //         }
+        //     }
+        // }
 
 
         stage('SonarQube Analysis') {
