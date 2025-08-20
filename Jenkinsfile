@@ -145,6 +145,62 @@ pipeline {
                     )
                     echo "===== Security Hotspots ====="
                     echo hotspots
+
+                    // Build SARIF JSON using jq
+                    sh """
+                        echo '${issues}' | ${JQ} -r '
+                        {
+                        version: "2.1.0",
+                        "\$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+                        runs: [
+                            {
+                            tool: {
+                                driver: {
+                                name: "SonarQube",
+                                informationUri: "${SONAR_HOST}",
+                                rules: []
+                                }
+                            },
+                            results: (
+                                .issues[]? | {
+                                ruleId: .rule,
+                                message: { text: .message },
+                                level: (if .severity == "BLOCKER" or .severity == "CRITICAL" then "error"
+                                        elif .severity == "MAJOR" then "warning"
+                                        else "note" end),
+                                locations: [
+                                    {
+                                    physicalLocation: {
+                                        artifactLocation: { uri: .component },
+                                        region: { startLine: .line }
+                                    }
+                                    }
+                                ]
+                                }
+                            ) | [.]
+                            }
+                        ]
+                        }' > sonar-results.sarif
+                    """
+
+                    // Append hotspots too
+                    sh """
+                        echo '${hotspots}' | ${JQ} -r '
+                        .hotspots[]? | {
+                        ruleId: .vulnerabilityProbability,
+                        message: { text: .message },
+                        level: "warning",
+                        locations: [
+                            {
+                            physicalLocation: {
+                                artifactLocation: { uri: .component },
+                                region: { startLine: .line }
+                            }
+                            }
+                        ]
+                        }' | jq -s 'reduce .[] as \$item (input; .runs[0].results += [\$item])' sonar-results.sarif > tmp.sarif && mv tmp.sarif sonar-results.sarif
+                    """
+                    cat sonar-results.sarif
                 }
             }
         }
