@@ -19,7 +19,7 @@ pipeline {
                     echo "Downloading JDK..."
                     curl -sLo openjdk.tar.gz https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.14%2B7/OpenJDK17U-jdk_x64_linux_hotspot_17.0.14_7.tar.gz
                     tar -xzf openjdk.tar.gz
-                    mv jdk-17* jdk17
+                    rm -rf jdk17 && mv jdk-17* jdk17
                     echo "Downloading jq..."
                     curl -sL -o jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
                     chmod +x jq
