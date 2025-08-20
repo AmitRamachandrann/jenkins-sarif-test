@@ -18,7 +18,7 @@ pipeline {
                       echo "Downloading Sonar Scanner CLI..."
                       curl -sLo scanner.zip \\
                         "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SCANNER_VERSION}-linux.zip"
-                    tar -xzf scanner.zip
+                      tar -xzf scanner.zip
                       mv sonar-scanner-${SCANNER_VERSION}-linux ${SCANNER_HOME}
                       rm scanner.zip
                     else
