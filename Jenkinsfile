@@ -4,7 +4,7 @@ pipeline {
     environment {
         SONAR_HOST = "https://sonarqube.saas-preprod.beescloud.com"
         SONAR_TOKEN = credentials('sonarqube-preprod-token') 
-        PROJECT_KEY = "sarif_test_002"
+        PROJECT_KEY = "sarif_test_003"
         SCANNER_VERSION = "5.0.1.3006"
         SCANNER_HOME = "${WORKSPACE}/sonar-scanner-5.0.1.3006"
         JAVA_HOME = "${WORKSPACE}/jdk17"
@@ -70,6 +70,7 @@ pipeline {
 
                     if (user_token) {
                         echo "✅ Generated user token: ${user_token}"
+                        env.USER_TOKEN = user_token
                     } else {
                         echo "⚠️ Token not returned. Likely it already exists with name ${PROJECT_KEY}"
                         echo "ℹ️ SonarQube does NOT return existing tokens, only metadata."
