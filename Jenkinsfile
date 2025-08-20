@@ -9,6 +9,7 @@ pipeline {
         SCANNER_HOME = "${WORKSPACE}/sonar-scanner-5.0.1.3006"
         JAVA_HOME = "${WORKSPACE}/jdk17"
         PATH = "${WORKSPACE}/jdk17/bin:${PATH}"
+        JQ = "${WORKSPACE}/bin/jq"
     }
 
     stages {
@@ -20,9 +21,12 @@ pipeline {
                     curl -sLo openjdk.tar.gz https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.14%2B7/OpenJDK17U-jdk_x64_linux_hotspot_17.0.14_7.tar.gz
                     tar -xzf openjdk.tar.gz
                     rm -rf jdk17 && mv jdk-17* jdk17
-                    echo "Downloading jq..."
-                    curl -sL -o jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
-                    chmod +x jq
+                    mkdir -p ${WORKSPACE}/bin
+                    if [ ! -f ${WORKSPACE}/bin/jq ]; then
+                        echo "Downloading jq..."
+                        curl -sLo ${WORKSPACE}/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+                        chmod +x ${WORKSPACE}/bin/jq
+                    fi
                 '''
             }
         }
@@ -73,7 +77,7 @@ pipeline {
                     timeout(time: 5, unit: 'MINUTES') {
                         waitUntil {
                             def result = sh(
-                                script: "curl -s -u ${SONAR_TOKEN}: ${ceTaskUrl} | jq -r '.task.status'",
+                                script: "curl -s -u ${SONAR_TOKEN}: ${ceTaskUrl} | ${JQ} -r '.task.status'",
                                 returnStdout: true
                             ).trim()
                             echo "SonarQube CE task status: ${result}"
@@ -89,7 +93,7 @@ pipeline {
                 script {
                     def issues = sh(
                         script: """curl -s -u ${SONAR_TOKEN}: \\
-                          "${SONAR_HOST}/api/issues/search?componentKeys=${PROJECT_KEY}&ps=500" | jq '.'""",
+                          "${SONAR_HOST}/api/issues/search?componentKeys=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
                         returnStdout: true
                     )
                     echo "===== Issues ====="
@@ -97,7 +101,7 @@ pipeline {
 
                     def hotspots = sh(
                         script: """curl -s -u ${SONAR_TOKEN}: \\
-                          "${SONAR_HOST}/api/hotspots/search?projectKey=${PROJECT_KEY}&ps=500" | jq '.'""",
+                          "${SONAR_HOST}/api/hotspots/search?projectKey=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
                         returnStdout: true
                     )
                     echo "===== Security Hotspots ====="
