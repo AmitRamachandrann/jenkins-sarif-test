@@ -34,11 +34,12 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 sh """
+                    chmod +x ${SCANNER_HOME}/bin/sonar-scanner
                     ${SCANNER_HOME}/bin/sonar-scanner \
-                      -Dsonar.projectKey=${PROJECT_KEY} \
+                      -Dsonar.projectKey=$PROJECT_KEY \
                       -Dsonar.sources=. \
-                      -Dsonar.host.url=${SONAR_HOST} \
-                      -Dsonar.login=${SONAR_TOKEN}
+                      -Dsonar.host.url=$SONAR_HOST \
+                      -Dsonar.login=$SONAR_TOKEN
                 """
             }
         }
