@@ -54,9 +54,10 @@ pipeline {
         stage('Get user token') {
             steps {
                 script {
+                    // Try generating a fresh token
                     def response = sh(
-                        script: """curl -X POST-s -u ${SONAR_TOKEN}: \
-                        "${SONAR_HOST}/api/user_tokens/generate?name=${PROJECT_KEY}" """,
+                        script: """curl -s -u ${SONAR_TOKEN}: \
+                        -X POST "${SONAR_HOST}/api/user_tokens/generate?name=${PROJECT_KEY}" """,
                         returnStdout: true
                     ).trim()
 
@@ -70,24 +71,13 @@ pipeline {
                     if (user_token) {
                         echo "✅ Generated user token: ${user_token}"
                     } else {
-                        echo "⚠️ No token returned, checking if it already exists..."
-                        // fallback: try to list tokens and extract one
-                        def existing = sh(
-                            script: """curl -X POST -s -u ${SONAR_TOKEN}: \
-                            "${SONAR_HOST}/api/user_tokens/search?login=admin" | ${JQ} -r '.userTokens[] | select(.name == "${PROJECT_KEY}") | .token'""",
-                            returnStdout: true
-                        ).trim()
-
-                        if (existing) {
-                            echo "♻️ Re-using existing token: ${existing}"
-                            user_token = existing
-                        } else {
-                            error "❌ Failed to create or find a token for ${PROJECT_KEY}"
-                        }
+                        echo "⚠️ Token not returned. Likely it already exists with name ${PROJECT_KEY}"
+                        echo "ℹ️ SonarQube does NOT return existing tokens, only metadata."
                     }
                 }
             }
         }
+
 
 
         // stage('Get user token') {
