@@ -7,9 +7,22 @@ pipeline {
         PROJECT_KEY = "sarif-test-cli-02"
         SCANNER_VERSION = "5.0.1.3006"
         SCANNER_HOME = "${WORKSPACE}/sonar-scanner-5.0.1.3006"
+        JAVA_HOME = "${WORKSPACE}/jdk17"
+        PATH = "${WORKSPACE}/jdk17/bin:${PATH}"
     }
 
     stages {
+
+        stage('Install JDK') {
+            steps {
+                sh '''
+                    echo "Downloading JDK..."
+                    curl -sLo openjdk.tar.gz https://download.java.net/java/GA/jdk17/35/GPL/openjdk-17_linux-x64_bin.tar.gz
+                    tar -xzf openjdk.tar.gz
+                    mv jdk-17* jdk17
+                '''
+            }
+        }
 
         stage('Install SonarScanner CLI') {
             steps {
