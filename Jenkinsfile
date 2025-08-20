@@ -55,7 +55,7 @@ pipeline {
             steps {
                 script {
                     def response = sh(
-                        script: """curl -s -u ${SONAR_TOKEN}: \
+                        script: """curl -X POST-s -u ${SONAR_TOKEN}: \
                         "${SONAR_HOST}/api/user_tokens/generate?name=${PROJECT_KEY}" """,
                         returnStdout: true
                     ).trim()
@@ -73,7 +73,7 @@ pipeline {
                         echo "⚠️ No token returned, checking if it already exists..."
                         // fallback: try to list tokens and extract one
                         def existing = sh(
-                            script: """curl -s -u ${SONAR_TOKEN}: \
+                            script: """curl -X POST -s -u ${SONAR_TOKEN}: \
                             "${SONAR_HOST}/api/user_tokens/search?login=admin" | ${JQ} -r '.userTokens[] | select(.name == "${PROJECT_KEY}") | .token'""",
                             returnStdout: true
                         ).trim()
