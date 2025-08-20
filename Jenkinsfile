@@ -18,7 +18,7 @@ pipeline {
                     curl -sL https://busybox.net/downloads/binaries/1.36.1-x86_64-linux-musl/busybox -o busybox
 
                     chmod +x busybox
-                    ln -s busybox unzip
+                    ln -sf busybox unzip
 
                     SCANNER_VERSION=5.0.1.3006
                     SCANNER_HOME=sonar-scanner-${SCANNER_VERSION}-linux
