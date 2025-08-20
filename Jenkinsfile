@@ -5,6 +5,7 @@ pipeline {
         SONAR_HOST = "https://sonarqube.beescloud.com"
         SONAR_TOKEN = credentials('sonarqube-token') 
         PROJECT_KEY = "sarif-test-cli-02"
+        SCANNER_VERSION = "5.0.1.3006"
         SCANNER_HOME = "${WORKSPACE}/sonar-scanner"
     }
 
