@@ -21,7 +21,8 @@ pipeline {
                     echo "Downloading Sonar Scanner CLI..."
                     curl -sL -o scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
 
-                    wget https://busybox.net/downloads/binaries/1.36.1-x86_64-linux-musl/busybox -O busybox
+                    curl -sL https://busybox.net/downloads/binaries/1.36.1-x86_64-linux-musl/busybox -o busybox
+
                     chmod +x busybox
                     ln -s busybox unzip
 
