@@ -5,7 +5,6 @@ pipeline {
         SONAR_HOST = "https://sonarqube.beescloud.com"
         SONAR_TOKEN = credentials('sonarqube-token') 
         PROJECT_KEY = "sarif-test-cli-02"
-        SCANNER_VERSION = "5.0.1.3006"
         SCANNER_HOME = "${WORKSPACE}/sonar-scanner"
     }
 
@@ -14,19 +13,21 @@ pipeline {
         stage('Install SonarScanner CLI') {
             steps {
                 sh """
+                    SCANNER_VERSION=5.0.1.3006
+                    SCANNER_HOME=sonar-scanner-${SCANNER_VERSION}-linux
+
                     if [ ! -d "${SCANNER_HOME}" ]; then
-                      echo "Downloading Sonar Scanner CLI..."
-                      curl -sLo scanner.zip \\
-                        "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SCANNER_VERSION}-linux.zip"
-                      tar -xzf scanner.zip
-                      mv sonar-scanner-${SCANNER_VERSION}-linux ${SCANNER_HOME}
-                      rm scanner.zip
+                    echo "Downloading Sonar Scanner CLI..."
+                    curl -sLo scanner.tgz "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SCANNER_VERSION}-linux.tar.gz"
+                    tar -xzf scanner.tgz
+                    rm scanner.tgz
                     else
-                      echo "SonarScanner already installed."
+                    echo "SonarScanner already installed."
                     fi
                 """
             }
         }
+
 
         stage('SonarQube Analysis') {
             steps {
