@@ -10,11 +10,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                git url: 'git@github.com:your-org/your-repo.git', branch: 'main'
-            }
-        }
 
         stage('Install SonarScanner CLI') {
             steps {
