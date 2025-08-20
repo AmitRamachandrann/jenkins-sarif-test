@@ -27,10 +27,15 @@ pipeline {
                     echo "Downloading Sonar Scanner CLI..."
                     curl -sLo scanner-sq.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
 
-                    # Use it
-                    ./unzip scanner-sq.zip
+                    curl -sLo scanner.tgz \
+                    https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.tar.gz
 
-                    rm scanner-sq.zip
+                    # Use it
+                    ./unzip scanner.tgz
+                    # ./unzip scanner-sq.zip
+                    
+
+                    # rm scanner-sq.zip
                     else
                     echo "SonarScanner already installed."
                     fi
