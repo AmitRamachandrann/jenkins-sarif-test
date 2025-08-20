@@ -17,7 +17,7 @@ pipeline {
             steps {
                 sh '''
                     echo "Downloading JDK..."
-                    curl -sLo openjdk.tar.gz https://download.java.net/java/GA/jdk17/35/GPL/openjdk-17_linux-x64_bin.tar.gz
+                    curl -sLo openjdk.tar.gz https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.14%2B7/OpenJDK17U-jdk_x64_linux_hotspot_17.0.14_7.tar.gz
                     tar -xzf openjdk.tar.gz
                     mv jdk-17* jdk17
                 '''
