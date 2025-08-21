@@ -149,7 +149,8 @@ pipeline {
 
                     // Print the library function
                     echo "===== Library Function ====="
-                    printInput.call("Hello world")
+                    def hissues = helper.mapHotspotsToIssues(hotspots)
+                    def result = helper.convertIssuesToSarif(hissues, SCANNER_VERSION)
                 }
             }
         }
