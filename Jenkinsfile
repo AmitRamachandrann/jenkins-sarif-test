@@ -136,21 +136,21 @@ pipeline {
                           "${SONAR_HOST}/api/issues/search?componentKeys=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
                         returnStdout: true
                     )
-                    echo "===== Issues ====="
-                    echo issues
+                    //echo "===== Issues ====="
+                    //echo issues
 
                     def hotspots = sh(
                         script: """curl -s -u ${SONAR_TOKEN}: \\
                           "${SONAR_HOST}/api/hotspots/search?projectKey=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
                         returnStdout: true
                     )
-                    echo "===== Security Hotspots ====="
-                    echo hotspots
+                    // echo "===== Security Hotspots ====="
+                    // echo hotspots
 
                     // Print the library function
                     echo "===== Library Function ====="
-                    def hissues = helper.mapHotspotsToIssues(hotspots)
-                    def result = helper.convertIssuesToSarif(hissues, SCANNER_VERSION)
+                    def sarifout = helper.getSarifOutput(issues, hotspots)
+                    echo "${sarifout}"
                 }
             }
         }
