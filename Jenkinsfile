@@ -135,7 +135,7 @@ pipeline {
                         script: """curl -s -u ${SONAR_TOKEN}: \\
                           "${SONAR_HOST}/api/issues/search?componentKeys=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
                         returnStdout: true
-                    )
+                    ).trim()
                     //echo "===== Issues ====="
                     //echo issues
 
@@ -143,13 +143,13 @@ pipeline {
                         script: """curl -s -u ${SONAR_TOKEN}: \\
                           "${SONAR_HOST}/api/hotspots/search?projectKey=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
                         returnStdout: true
-                    )
+                    ).trim()
                     // echo "===== Security Hotspots ====="
                     // echo hotspots
 
                     // Print the library function
                     echo "===== Library Function ====="
-                    def workspacePath = ${env.WORKSPACE}
+                    def workspacePath = env.WORKSPACE
                     def sarifout = helper.getSarifOutput(issues, hotspots, workspacePath, SCANNER_VERSION)
                     echo "${sarifout}"
                 }
