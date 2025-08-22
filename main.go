@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os/exec"
 
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/ssh"
@@ -20,6 +21,12 @@ const password = "super_secret"
 func hello(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	apiKey := "ASIAY34FZKBOKMUTVV7A"
 	name := p.ByName("name")
+
+	// Vulnerable: command injection using unsanitized user input
+	cmd := fmt.Sprintf("echo %s", name)
+	output, _ := exec.Command("sh", "-c", cmd).CombinedOutput()
+	fmt.Printf("Command output: %s\n", output)
+
 	payload := Payload{
 		Message:  "Hello " + name,
 		Password: apiKey,
