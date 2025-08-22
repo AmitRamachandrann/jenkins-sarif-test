@@ -150,7 +150,6 @@ pipeline {
                     // Print the library function
                     echo "===== Library Function ====="
                     def workspacePath = ${env.WORKSPACE}
-                    echo "Workspace Path: ${workspacePath}"
                     def sarifout = helper.getSarifOutput(issues, hotspots, workspacePath, SCANNER_VERSION)
                     echo "${sarifout}"
                 }
