@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vulnerable-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vuln
+  template:
+    metadata:
+      labels:
+        app: vuln
+    spec:
+      containers:
+      - name: app
+        image: nginx:latest # ❌ using :latest tag
+        securityContext:
+          privileged: true   # ❌ privileged container
+        env:
+        - name: DB_PASSWORD
+          value: "plaintextpassword" # ❌ hardcoded secret
