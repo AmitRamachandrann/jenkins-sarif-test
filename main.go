@@ -36,6 +36,9 @@ func hello(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	hash := md5.Sum(data)
 	fmt.Printf("MD5 Hash: %x\n", hash)
 
+	patToken := "ghp_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+	fmt.Printf("PAT Token: %s\n", patToken)
+
 	response, err := json.Marshal(payload)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
