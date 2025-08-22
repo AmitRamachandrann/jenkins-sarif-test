@@ -136,8 +136,8 @@ pipeline {
                           "${SONAR_HOST}/api/issues/search?componentKeys=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
                         returnStdout: true
                     ).trim()
-                    echo "===== Issues ====="
-                    echo issues
+                    // echo "===== Issues ====="
+                    // echo issues
 
                     def hotspots = sh(
                         script: """curl -s -u ${SONAR_TOKEN}: \\

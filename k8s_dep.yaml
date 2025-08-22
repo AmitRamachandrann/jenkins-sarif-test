@@ -14,9 +14,9 @@ spec:
     spec:
       containers:
       - name: app
-        image: nginx:latest # ❌ using :latest tag
+        image: nginx:latest
         securityContext:
-          privileged: true   # ❌ privileged container
+          privileged: true
         env:
         - name: DB_PASSWORD
-          value: "plaintextpassword" # ❌ hardcoded secret
+          value: "plaintextpassword"
