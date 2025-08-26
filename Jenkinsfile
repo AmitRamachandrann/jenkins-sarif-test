@@ -6,24 +6,25 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
 
         stage('Install Gitleaks') {
             steps {
                 sh '''
-                    if ! command -v gitleaks >/dev/null 2>&1; then
-                        echo "Installing gitleaks..."
-                        curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64 \
-                        -o /usr/local/bin/gitleaks
-                        chmod +x /usr/local/bin/gitleaks
+                    mkdir -p $WORKSPACE/bin
+                    if ! [ -x "$WORKSPACE/bin/gitleaks" ]; then
+                        echo "Installing gitleaks locally in $WORKSPACE/bin ..."
+                        GITLEAKS_VERSION=8.18.1
+                        curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz \
+                        -o gitleaks.tar.gz
+                        tar -xzf gitleaks.tar.gz -C $WORKSPACE/bin gitleaks
+                        chmod +x $WORKSPACE/bin/gitleaks
                     fi
+                    export PATH=$WORKSPACE/bin:$PATH
+                    $WORKSPACE/bin/gitleaks version
                 '''
             }
         }
+
 
         stage('Run Gitleaks Scan') {
             steps {
