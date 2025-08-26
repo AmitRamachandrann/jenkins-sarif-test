@@ -17,8 +17,9 @@ pipeline {
                 sh '''
                     if ! command -v gitleaks >/dev/null 2>&1; then
                         echo "Installing gitleaks..."
-                        curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz \
-                          | tar -xz -C /usr/local/bin gitleaks
+                        curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64 \
+                        -o /usr/local/bin/gitleaks
+                        chmod +x /usr/local/bin/gitleaks
                     fi
                 '''
             }
