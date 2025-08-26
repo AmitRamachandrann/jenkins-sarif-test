@@ -1,8 +1,12 @@
 pipeline {
     agent any
 
+    environment {
+        TRIVY_SCAN_TARGET = "${env.WORKSPACE}/image.tar"
+    }
+
     stages {
-        stage('Trivy Image Scan with Kaniko') {
+        stage('Trivy Image Scan') {
             steps {
                 sh '''
                 # Download Trivy if not present
@@ -14,7 +18,7 @@ pipeline {
                 fi
 
                 # Scan tarball with Trivy
-                ./trivy image --input /workspace/image.tar --format sarif
+                ./trivy image --input ${TRIVY_SCAN_TARGET} --format sarif
                 '''
             }
         }
