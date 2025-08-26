@@ -29,10 +29,11 @@ pipeline {
         stage('Run Gitleaks Scan') {
             steps {
                 sh """
-                    gitleaks detect \
-                      --source . \
-                      --report-format sarif \
-                      --report-path ${SARIF_FILE} || true
+                    ${GITLEAKS_BIN}/gitleaks detect \
+                    --source . \
+                    --no-git \
+                    --report-format sarif \
+                    --report-path ${SARIF_FILE} || true
                 """
             }
         }
