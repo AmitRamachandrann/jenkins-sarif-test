@@ -26,6 +26,16 @@ pipeline {
             }
         }
 
+        stage('Prepare SARIF File') {
+            steps {
+                sh """
+                    if [ -f "${SARIF_FILE}" ]; then
+                        rm -f "${SARIF_FILE}"
+                    fi
+                """
+            }
+        }
+
         stage('Run Gitleaks Scan') {
             steps {
                 sh """
