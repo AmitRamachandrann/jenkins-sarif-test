@@ -3,6 +3,8 @@ pipeline {
 
     environment {
         SARIF_FILE = "gitleaks-report.sarif"
+        GITLEAKS_BIN = "${WORKSPACE}/bin"
+        PATH = "${GITLEAKS_BIN}:${env.PATH}"
     }
 
     stages {
@@ -10,21 +12,19 @@ pipeline {
         stage('Install Gitleaks') {
             steps {
                 sh '''
-                    mkdir -p $WORKSPACE/bin
-                    if ! [ -x "$WORKSPACE/bin/gitleaks" ]; then
-                        echo "Installing gitleaks locally in $WORKSPACE/bin ..."
+                    mkdir -p $GITLEAKS_BIN
+                    if ! [ -x "$GITLEAKS_BIN/gitleaks" ]; then
+                        echo "Installing gitleaks locally in $GITLEAKS_BIN ..."
                         GITLEAKS_VERSION=8.18.1
                         curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz \
                         -o gitleaks.tar.gz
-                        tar -xzf gitleaks.tar.gz -C $WORKSPACE/bin gitleaks
-                        chmod +x $WORKSPACE/bin/gitleaks
+                        tar -xzf gitleaks.tar.gz -C $GITLEAKS_BIN gitleaks
+                        chmod +x $GITLEAKS_BIN/gitleaks
                     fi
-                    export PATH=$WORKSPACE/bin:$PATH
-                    $WORKSPACE/bin/gitleaks version
+                    gitleaks version
                 '''
             }
         }
-
 
         stage('Run Gitleaks Scan') {
             steps {
@@ -40,9 +40,13 @@ pipeline {
         stage('Show SARIF Output') {
             steps {
                 script {
-                    def sarifReport = readFile("${SARIF_FILE}")
-                    echo "===== Gitleaks SARIF Report ====="
-                    echo sarifReport
+                    if (fileExists("${SARIF_FILE}")) {
+                        def sarifReport = readFile("${SARIF_FILE}")
+                        echo "===== Gitleaks SARIF Report ====="
+                        echo sarifReport
+                    } else {
+                        echo "No SARIF report found"
+                    }
                 }
             }
         }
