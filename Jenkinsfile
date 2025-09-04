@@ -99,7 +99,9 @@ pipeline {
                       -Dsonar.projectKey=$PROJECT_KEY \
                       -Dsonar.sources=. \
                       -Dsonar.host.url=$SONAR_HOST \
-                      -Dsonar.login=$USER_TOKEN
+                      -Dsonar.login=$USER_TOKEN \
+                      -Dsonar.report.export.path=sonar.json
+                    cat sonar.json
                 """
             }
         }
