@@ -101,7 +101,6 @@ pipeline {
                       -Dsonar.host.url=$SONAR_HOST \
                       -Dsonar.login=$USER_TOKEN \
                       -Dsonar.report.export.path=sonar.json
-                    cat sonar.json
                 """
             }
         }
@@ -154,6 +153,7 @@ pipeline {
                     def workspacePath = env.WORKSPACE
                     def sarifout = helper.getSarifOutput(env.SONAR_HOST, env.SONAR_TOKEN, env.PROJECT_KEY , workspacePath, SCANNER_VERSION)
                     echo "${sarifout}"
+                    cat sonar.json
                 }
             }
         }
