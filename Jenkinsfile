@@ -132,28 +132,28 @@ pipeline {
         stage('Fetch Issues & Hotspots') {
             steps {
                 script {
-                    // def issues = sh(
-                    //     script: """curl -s -u ${SONAR_TOKEN}: \\
-                    //       "${SONAR_HOST}/api/issues/search?componentKeys=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
-                    //     returnStdout: true
-                    // ).trim()
-                    // // echo "===== Issues ====="
-                    // // echo issues
+                    def issues = sh(
+                        script: """curl -s -u ${SONAR_TOKEN}: \\
+                          "${SONAR_HOST}/api/issues/search?componentKeys=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
+                        returnStdout: true
+                    ).trim()
+                    echo "===== Issues ====="
+                    echo issues
 
-                    // def hotspots = sh(
-                    //     script: """curl -s -u ${SONAR_TOKEN}: \\
-                    //       "${SONAR_HOST}/api/hotspots/search?projectKey=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
-                    //     returnStdout: true
-                    // ).trim()
-                    // // echo "===== Security Hotspots ====="
-                    // // echo hotspots
+                    def hotspots = sh(
+                        script: """curl -s -u ${SONAR_TOKEN}: \\
+                          "${SONAR_HOST}/api/hotspots/search?projectKey=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
+                        returnStdout: true
+                    ).trim()
+                    echo "===== Security Hotspots ====="
+                    echo hotspots
 
                     // Print the library function
-                    echo "===== Library Function ====="
-                    def workspacePath = env.WORKSPACE
-                    def sarifout = helper.getSarifOutput(env.SONAR_HOST, env.SONAR_TOKEN, env.PROJECT_KEY , workspacePath, SCANNER_VERSION)
-                    echo "${sarifout}"
-                    cat sonar.json
+                    // echo "===== Library Function ====="
+                    // def workspacePath = env.WORKSPACE
+                    // def sarifout = helper.getSarifOutput(env.SONAR_HOST, env.SONAR_TOKEN, env.PROJECT_KEY , workspacePath, SCANNER_VERSION)
+                    // echo "${sarifout}"
+                    // cat sonar.json
                 }
             }
         }
