@@ -129,33 +129,180 @@ pipeline {
             }
         }
 
+        // stage('Fetch Issues & Hotspots') {
+        //     steps {
+        //         script {
+        //             def issues = sh(
+        //                 script: """curl -s -u ${SONAR_TOKEN}: \\
+        //                   "${SONAR_HOST}/api/issues/search?componentKeys=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
+        //                 returnStdout: true
+        //             ).trim()
+        //             echo "===== Issues ====="
+        //             echo issues
+
+        //             def hotspots = sh(
+        //                 script: """curl -s -u ${SONAR_TOKEN}: \\
+        //                   "${SONAR_HOST}/api/hotspots/search?projectKey=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
+        //                 returnStdout: true
+        //             ).trim()
+        //             echo "===== Security Hotspots ====="
+        //             echo hotspots
+
+        //             // Print the library function
+        //             // echo "===== Library Function ====="
+        //             // def workspacePath = env.WORKSPACE
+        //             // def sarifout = helper.getSarifOutput(env.SONAR_HOST, env.SONAR_TOKEN, env.PROJECT_KEY , workspacePath, SCANNER_VERSION)
+        //             // echo "${sarifout}"
+        //             // cat sonar.json
+        //         }
+        //     }
+        // }
+
         stage('Fetch Issues & Hotspots') {
             steps {
-                script {
-                    def issues = sh(
-                        script: """curl -s -u ${SONAR_TOKEN}: \\
-                          "${SONAR_HOST}/api/issues/search?componentKeys=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
-                        returnStdout: true
-                    ).trim()
-                    echo "===== Issues ====="
-                    echo issues
+                sh '''
+                echo "Fetching issues..."
+                curl -s -u ${SONAR_TOKEN}: \
+                  "${SONAR_HOST}/api/issues/search?componentKeys=${PROJECT_KEY}&ps=500" \
+                  -o issues.json
 
-                    def hotspots = sh(
-                        script: """curl -s -u ${SONAR_TOKEN}: \\
-                          "${SONAR_HOST}/api/hotspots/search?projectKey=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
-                        returnStdout: true
-                    ).trim()
-                    echo "===== Security Hotspots ====="
-                    echo hotspots
+                echo "Fetching hotspots..."
+                curl -s -u ${SONAR_TOKEN}: \
+                  "${SONAR_HOST}/api/hotspots/search?projectKey=${PROJECT_KEY}&ps=500" \
+                  -o hotspots.json
+                '''
+            }
+        }
 
-                    // Print the library function
-                    // echo "===== Library Function ====="
-                    // def workspacePath = env.WORKSPACE
-                    // def sarifout = helper.getSarifOutput(env.SONAR_HOST, env.SONAR_TOKEN, env.PROJECT_KEY , workspacePath, SCANNER_VERSION)
-                    // echo "${sarifout}"
-                    // cat sonar.json
-                }
+        stage('Fetch Rules') {
+            steps {
+                sh '''
+                echo "Extracting unique rule IDs..."
+                issue_rules=$(jq -r ".issues[].rule" issues.json | sort -u)
+                hotspot_rules=$(jq -r ".hotspots[].ruleKey" hotspots.json | sort -u)
+                all_rules=$(printf "%s\n%s" "$issue_rules" "$hotspot_rules" | sort -u)
+
+                echo "Fetching rules from SonarQube..."
+                rm -f rules.json
+                echo "[]" > rules.json
+
+                for rid in $all_rules; do
+                  echo "  -> Rule: $rid"
+                  resp=$(curl -s -u ${SONAR_TOKEN}: "${SONAR_HOST}/api/rules/show?key=$rid")
+                  # Append to rules.json
+                  echo "$resp" | jq -c '.rule' | jq -s '.[0]' | jq -c '.' >> rules.tmp
+                done
+
+                # Merge into array
+                jq -s '.' rules.tmp > rules.json
+                rm -f rules.tmp
+                '''
+            }
+        }
+
+        stage('Build SARIF File') {
+            steps {
+                sh '''
+                echo "Mapping issues to SARIF..."
+                issue_results=$(${JQ} -c '
+                  .issues[]? | {
+                    ruleId: .rule,
+                    level: (
+                      if .severity == "MINOR" then "note"
+                      elif .severity == "MAJOR" then "warning"
+                      elif .severity == "CRITICAL" or .severity == "BLOCKER" then "error"
+                      else "note"
+                      end
+                    ),
+                    message: { text: (.type + ": " + .message) },
+                    locations: [
+                      {
+                        physicalLocation: {
+                          artifactLocation: { uri: (.component | split(":")[1]) },
+                          region: {
+                            startLine: .textRange.startLine,
+                            endLine: .textRange.endLine,
+                            startColumn: .textRange.startOffset,
+                            endColumn: .textRange.endOffset
+                          }
+                        }
+                      }
+                    ]
+                  }' issues.json)
+
+                echo "Mapping hotspots to SARIF..."
+                hotspot_results=$(${JQ} -c '
+                  .hotspots[]? | {
+                    ruleId: .ruleKey,
+                    level: (.vulnerabilityProbability | ascii_downcase),
+                    message: { text: "HOTSPOT: " + .message },
+                    locations: [
+                      {
+                        physicalLocation: {
+                          artifactLocation: { uri: (.component | split(":")[1]) },
+                          region: {
+                            startLine: .textRange.startLine,
+                            endLine: .textRange.endLine,
+                            startColumn: .textRange.startOffset,
+                            endColumn: .textRange.endOffset
+                          }
+                        }
+                      }
+                    ]
+                  }' hotspots.json)
+
+                echo "Mapping rules to SARIF..."
+                sarif_rules=$(${JQ} -c '
+                  map({
+                    id: .key,
+                    name: .name,
+                    shortDescription: { text: .name },
+                    fullDescription: { text: .htmlDesc },
+                    help: {
+                      text: (.mdDesc // .htmlDesc),
+                      uri: "https://sonarqube.example.com/coding_rules?open=" + .key
+                    },
+                    properties: {
+                      tags: .tags,
+                      severity: .severity,
+                      type: .type,
+                      lang: .lang
+                    }
+                  })' rules.json)
+
+                echo "Combining into SARIF..."
+                ${JQ} -n \
+                  --argjson issues "[$issue_results]" \
+                  --argjson hotspots "[$hotspot_results]" \
+                  --argjson rules "$sarif_rules" \
+                  --arg scannerVersion "${SCANNER_VERSION}" '
+                {
+                  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
+                  "version": "2.1.0",
+                  "runs": [
+                    {
+                      "tool": {
+                        "driver": {
+                          "name": "SonarQube",
+                          "version": $scannerVersion,
+                          "rules": $rules
+                        }
+                      },
+                      "results": ($issues + $hotspots)
+                    }
+                  ]
+                }' > ${SARIF_FILE}
+
+                echo "✅ SARIF file generated: ${SARIF_FILE}"
+                '''
+            }
+        }
+
+        stage('Archive SARIF') {
+            steps {
+                archiveArtifacts artifacts: "${SARIF_FILE}", fingerprint: true
             }
         }
     }
 }
+
