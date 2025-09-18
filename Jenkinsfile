@@ -48,7 +48,6 @@ pipeline {
                       apt-get update && apt-get install -y unzip
                       unzip scanner-sq.zip
                     fi
-                    // jar -xf scanner-sq.zip
                     rm scanner-sq.zip
                     else
                     echo "SonarScanner already installed."
