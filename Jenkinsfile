@@ -183,8 +183,8 @@ pipeline {
             steps {
                 sh '''
                 echo "Extracting unique rule IDs..."
-                issue_rules=$(jq -r ".issues[].rule" issues.json | sort -u)
-                hotspot_rules=$(jq -r ".hotspots[].ruleKey" hotspots.json | sort -u)
+                issue_rules=$(${JQ} -r ".issues[].rule" issues.json | sort -u)
+                hotspot_rules=$(${JQ} -r ".hotspots[].ruleKey" hotspots.json | sort -u)
                 all_rules=$(printf "%s\n%s" "$issue_rules" "$hotspot_rules" | sort -u)
 
                 echo "Fetching rules from SonarQube..."
@@ -195,11 +195,11 @@ pipeline {
                   echo "  -> Rule: $rid"
                   resp=$(curl -s -u ${SONAR_TOKEN}: "${SONAR_HOST}/api/rules/show?key=$rid")
                   # Append to rules.json
-                  echo "$resp" | jq -c '.rule' | jq -s '.[0]' | jq -c '.' >> rules.tmp
+                  echo "$resp" | ${JQ} -c '.rule' | ${JQ} -s '.[0]' | ${JQ} -c '.' >> rules.tmp
                 done
 
                 # Merge into array
-                jq -s '.' rules.tmp > rules.json
+                ${JQ} -s '.' rules.tmp > rules.json
                 rm -f rules.tmp
                 '''
             }
