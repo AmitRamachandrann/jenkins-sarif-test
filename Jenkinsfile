@@ -41,7 +41,14 @@ pipeline {
                     echo "Downloading Sonar Scanner CLI..."
                     curl -sLo scanner-sq.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
                     # Use it
-                    jar -xf scanner-sq.zip
+                    if command -v unzip >/dev/null 2>&1; then
+                      unzip scanner-sq.zip
+                    else
+                      echo "Installing unzip..."
+                      apt-get update && apt-get install -y unzip
+                      unzip scanner-sq.zip
+                    fi
+                    // jar -xf scanner-sq.zip
                     rm scanner-sq.zip
                     else
                     echo "SonarScanner already installed."
