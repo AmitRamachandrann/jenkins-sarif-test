@@ -1,4 +1,3 @@
-//@Library('sonar-sarif-tool@main') _
 pipeline {
     agent any
 
