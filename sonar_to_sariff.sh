@@ -168,6 +168,7 @@ map_hotspots_to_sarif() {
 # ------------------------------------------------------------------------------
 make_rules_for_sarif() {
   local host="$1" token="$2"
+  echo "Collected RULE_IDS: ${RULE_IDS[*]}" >&2
   for rule_id in $(printf "%s\n" "${RULE_IDS[@]}" | sort -u); do
     resp=$(fetch_sonar_rule "$host" "$token" "$rule_id")
     $jq_bin -c --arg host "$host" '
