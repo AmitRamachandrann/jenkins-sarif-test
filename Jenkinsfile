@@ -158,11 +158,9 @@ pipeline {
 
         stage('Generate SARIF') {
             steps {
-                sh '''#!/usr/bin/env bash
-                set -euo pipefail
+                sh '''
                 chmod +x ./sonar_to_sarif.sh
-                source ./sonar_to_sarif.sh
-                get_sarif_output \
+                ./sonar_to_sarif.sh get_sarif_output \
                     env.SONAR_HOST \
                     env.SONAR_TOKEN \
                     env.PROJECT_KEY \

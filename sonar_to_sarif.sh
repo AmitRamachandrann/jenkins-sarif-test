@@ -165,3 +165,7 @@ get_sarif_output() {
 }
 
 
+if [[ "${1:-}" == "get_sarif_output" ]]; then
+  shift
+  get_sarif_output "$@"
+fi
