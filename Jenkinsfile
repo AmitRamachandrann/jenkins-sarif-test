@@ -166,9 +166,13 @@ pipeline {
                 "$PROJECT_KEY" \
                 "$WORKSPACE" \
                 "$SCANNER_VERSION" > sonar.sarif.json
-
-                echo sonar.sarif.json
                 '''
+            }
+        }
+
+        stage('Show SARIF JSON') {
+            steps {
+                sh '$jq . sonar.sarif.json'
             }
         }
     }
