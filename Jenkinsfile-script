@@ -10,7 +10,7 @@ pipeline {
         SCANNER_HOME = "${WORKSPACE}/sonar-scanner-5.0.1.3006"
         JAVA_HOME = "${WORKSPACE}/jdk17"
         PATH = "${WORKSPACE}/jdk17/bin:${PATH}"
-        jq = "${WORKSPACE}/bin/jq"
+        JQ = "${WORKSPACE}/bin/jq"
     }
 
     stages {
@@ -64,7 +64,7 @@ pipeline {
                     echo "Raw API response: ${response}"
 
                     def user_token = sh(
-                        script: """echo '${response}' | $jq -r '.token // empty'""",
+                        script: """echo '${response}' | ${JQ} -r '.token // empty'""",
                         returnStdout: true
                     ).trim()
 
@@ -78,17 +78,6 @@ pipeline {
                 }
             }
         }
-
-
-
-        // stage('Get user token') {
-        //     steps {
-        //         script {
-        //             def user_token = sh(script: "curl -X POST -s -u ${SONAR_TOKEN}: ${SONAR_HOST}/api/user_tokens/generate?name=${PROJECT_KEY} | ${JQ} -r '.token'", returnStdout: true)
-        //             echo "Generated user token: ${user_token}"
-        //         }
-        //     }
-        // }
 
 
         stage('SonarQube Analysis') {
@@ -117,7 +106,7 @@ pipeline {
                     timeout(time: 5, unit: 'MINUTES') {
                         waitUntil {
                             def result = sh(
-                                script: "curl -s -u ${SONAR_TOKEN}: ${ceTaskUrl} | $jq -r '.task.status'",
+                                script: "curl -s -u ${SONAR_TOKEN}: ${ceTaskUrl} | ${JQ} -r '.task.status'",
                                 returnStdout: true
                             ).trim()
                             echo "SonarQube CE task status: ${result}"
@@ -128,53 +117,15 @@ pipeline {
             }
         }
 
-        // stage('Fetch Issues & Hotspots') {
-        //     steps {
-        //         script {
-        //             // def issues = sh(
-        //             //     script: """curl -s -u ${SONAR_TOKEN}: \\
-        //             //       "${SONAR_HOST}/api/issues/search?componentKeys=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
-        //             //     returnStdout: true
-        //             // ).trim()
-        //             // // echo "===== Issues ====="
-        //             // // echo issues
-
-        //             // def hotspots = sh(
-        //             //     script: """curl -s -u ${SONAR_TOKEN}: \\
-        //             //       "${SONAR_HOST}/api/hotspots/search?projectKey=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
-        //             //     returnStdout: true
-        //             // ).trim()
-        //             // // echo "===== Security Hotspots ====="
-        //             // // echo hotspots
-
-        //             // Print the library function
-        //             echo "===== Library Function ====="
-        //             def workspacePath = env.WORKSPACE
-        //             def sarifout = helper.getSarifOutput(env.SONAR_HOST, env.SONAR_TOKEN, env.PROJECT_KEY , workspacePath, SCANNER_VERSION)
-        //             echo "${sarifout}"
-        //         }
-        //     }
-        // }
-
-        stage('Generate SARIF') {
+        stage('Fetch Issues & Hotspots') {
             steps {
-                sh '''
-                # make script executable
-                chmod +x ./sonar_to_sarif.sh
-
-                # source the script into the shell session
-                source ./sonar_to_sarif.sh
-
-                # now call the function
-                get_sarif_output \
-                    env.SONAR_HOST \
-                    env.SONAR_TOKEN \
-                    env.PROJECT_KEY \
-                    env.WORKSPACE \
-                    SCANNER_VERSION > sonar.sarif.json
-
-                echo sonar.sarif.json
-                '''
+                script {
+                    // Print the library function
+                    echo "===== Library Function ====="
+                    def workspacePath = env.WORKSPACE
+                    def sarifout = helper.getSarifOutput(env.SONAR_HOST, env.SONAR_TOKEN, env.PROJECT_KEY , workspacePath, SCANNER_VERSION)
+                    echo "${sarifout}"
+                }
             }
         }
     }
