@@ -163,7 +163,7 @@ pipeline {
                 chmod +x ./sonar_to_sarif.sh
 
                 # source the script into the shell session
-                source ./sonar_to_sarif.sh
+                . ./sonar_to_sarif.sh
 
                 # now call the function
                 get_sarif_output \
