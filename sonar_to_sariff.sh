@@ -2,7 +2,7 @@
 set -euo
 
 # Dependencies
-jq_bin=$(command -v jq || echo "jq")
+jq_bin=$(command -v $jq || echo "$jq")
 if [[ -z "$jq_bin" ]]; then
   echo "Error: jq is required but not installed." >&2
   exit 1
