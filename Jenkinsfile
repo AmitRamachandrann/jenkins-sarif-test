@@ -161,11 +161,11 @@ pipeline {
                 sh '''
                 chmod +x ./sonar_to_sarif.sh
                 ./sonar_to_sarif.sh get_sarif_output \
-                    env.SONAR_HOST \
-                    env.SONAR_TOKEN \
-                    env.PROJECT_KEY \
-                    env.WORKSPACE \
-                    SCANNER_VERSION > sonar.sarif.json
+                "$SONAR_HOST" \
+                "$SONAR_TOKEN" \
+                "$PROJECT_KEY" \
+                "$WORKSPACE" \
+                "$SCANNER_VERSION" > sonar.sarif.json
 
                 echo sonar.sarif.json
                 '''
