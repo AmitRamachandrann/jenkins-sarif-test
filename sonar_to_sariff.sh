@@ -51,7 +51,7 @@ fetch_sonar_rule() {
 # Map issues to SARIF
 # ------------------------------------------------------------------------------
 map_issues_to_sarif() {
-  local issues_json="$1" workspace="$2" rule_file="$3"
+  local issues_json="$1" workspace="$2" rule_file="${3:-$(mktemp)}"
 
   while read -r issue; do
     local rule message file_path start_line end_line start_col end_col severity type snippet
@@ -103,7 +103,7 @@ map_issues_to_sarif() {
 }
 
 map_hotspots_to_sarif() {
-  local hotspots_json="$1" workspace="$2" rule_file="$3"
+  local hotspots_json="$1" workspace="$2" rule_file="${3:-$(mktemp)}"
 
   while read -r hotspot; do
     local rule message file_path start_line end_line start_col end_col severity snippet
@@ -157,7 +157,7 @@ map_hotspots_to_sarif() {
 # Generate SARIF rules
 # ------------------------------------------------------------------------------
 make_rules_for_sarif() {
-  local host="$1" token="$2" rule_file="$3"
+  local host="$1" token="$2" rule_file="${3:-$(mktemp)}"
   sort -u "$rule_file" | while read -r rule_id; do
     resp=$(fetch_sonar_rule "$host" "$token" "$rule_id")
     $jq_bin -c '
