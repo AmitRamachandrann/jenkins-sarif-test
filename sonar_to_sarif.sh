@@ -58,8 +58,10 @@ get_snippet() {
 map_issues_to_sarif() {
   local issues_json="$1" workspace="$2"
 
-  echo "$issues_json" | $jq -c '.issues[]?' | while read -r issue; do
-    local rule message file_path start_line end_line start_col end_col severity type
+  # Use process substitution to avoid subshell -> keeps RULE_IDS updated
+  while read -r issue; do
+    local rule message file_path start_line end_line start_col end_col severity type snippet
+
     rule=$($jq -r '.rule' <<<"$issue")
     message=$($jq -r '.message' <<<"$issue")
     file_path=$($jq -r '.component | split(":")[1]?' <<<"$issue")
@@ -72,6 +74,7 @@ map_issues_to_sarif() {
 
     snippet=$(get_snippet "${workspace}/${file_path}" "$start_line" "$end_line" | $jq -Rs .)
 
+    # Collect ruleId globally
     add_rule_id "$rule"
 
     $jq -n \
@@ -102,7 +105,7 @@ map_issues_to_sarif() {
           }
         }]
       }'
-  done
+  done < <(echo "$issues_json" | $jq -c '.issues[]?')
 }
 
 # Generate SARIF rules section
