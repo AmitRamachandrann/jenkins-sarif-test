@@ -2,7 +2,7 @@
 set -euo
 
 # Dependencies
-jq_bin=$(command -v $jq || echo "$jq")
+jq_bin=$(command -v jq || echo "jq")
 if [[ -z "$jq_bin" ]]; then
   echo "Error: jq is required but not installed." >&2
   exit 1
@@ -48,7 +48,7 @@ fetch_sonar_rule() {
 }
 
 # ------------------------------------------------------------------------------
-# Map issues to SARIF
+# Map issues/hotspots to SARIF
 # ------------------------------------------------------------------------------
 map_issues_to_sarif() {
   local issues_json="$1" workspace="$2" rule_file="${3:-$(mktemp)}"
@@ -158,6 +158,7 @@ map_hotspots_to_sarif() {
 # ------------------------------------------------------------------------------
 make_rules_for_sarif() {
   local host="$1" token="$2" rule_file="${3:-$(mktemp)}"
+
   sort -u "$rule_file" | while read -r rule_id; do
     resp=$(fetch_sonar_rule "$host" "$token" "$rule_id")
     $jq_bin -c '
@@ -193,18 +194,18 @@ get_sarif_output() {
   rule_file=$(mktemp)
   trap 'rm -f "$rule_file"' EXIT
 
-  # Fetch SonarQube JSON
+  # Fetch JSON
   issues_json=$(fetch_sonar_issues "$url" "$token" "$project")
   hotspots_json=$(fetch_sonar_hotspots "$url" "$token" "$project")
 
-  # Map issues and hotspots to SARIF results, collecting rules in $rule_file
+  # Map to SARIF results
   issues_sarif=$(map_issues_to_sarif "$issues_json" "$workspace" "$rule_file" | $jq_bin -s .)
   hotspots_sarif=$(map_hotspots_to_sarif "$hotspots_json" "$workspace" "$rule_file" | $jq_bin -s .)
 
-  # Combine results
+  # Combine
   combined=$($jq_bin -s '.[0] + .[1]' <<<"$issues_sarif $hotspots_sarif")
 
-  # Build rules JSON
+  # Build rules
   rules=$(make_rules_for_sarif "$url" "$token" "$rule_file" | $jq_bin -s .)
 
   # Output final SARIF
