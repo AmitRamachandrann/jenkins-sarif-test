@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Temporary file for rule IDs
+RULE_IDS_FILE="$(mktemp)"
+trap 'rm -f "$RULE_IDS_FILE"' EXIT
+
 # Dependencies
 jq_bin=$(command -v $jq || echo "$jq")
 if [[ -z "$jq_bin" ]]; then
@@ -11,6 +15,11 @@ fi
 # ------------------------------------------------------------------------------
 # Utility functions
 # ------------------------------------------------------------------------------
+add_rule_id() {
+  local rule_id="$1"
+  [[ -n "$rule_id" ]] && echo "$rule_id" >> "$RULE_IDS_FILE"
+}
+
 severity_map() {
   local sev="$1"
   case "$sev" in
@@ -25,7 +34,10 @@ severity_map() {
 
 get_snippet() {
   local file="$1" start_line="$2" end_line="$3"
-  [[ -f "$file" ]] || { echo ""; return; }
+  if [[ ! -f "$file" ]]; then
+    echo ""
+    return
+  fi
   sed -n "${start_line},${end_line}p" "$file"
 }
 
@@ -34,30 +46,30 @@ get_snippet() {
 # ------------------------------------------------------------------------------
 fetch_sonar_issues() {
   local host="$1" token="$2" project="$3"
-  curl -s -u "${token}:" "${host}/api/issues/search?componentKeys=${project}&ps=500"
+  curl -s -u "${token}:" \
+    "${host}/api/issues/search?componentKeys=${project}&ps=500"
 }
 
 fetch_sonar_hotspots() {
   local host="$1" token="$2" project="$3"
-  curl -s -u "${token}:" "${host}/api/hotspots/search?projectKey=${project}&ps=500"
+  curl -s -u "${token}:" \
+    "${host}/api/hotspots/search?projectKey=${project}&ps=500"
 }
 
 fetch_sonar_rule() {
   local host="$1" token="$2" rule_id="$3"
-  curl -s -u "${token}:" "${host}/api/rules/show?key=${rule_id}"
+  curl -s -u "${token}:" \
+    "${host}/api/rules/show?key=${rule_id}"
 }
 
 # ------------------------------------------------------------------------------
-# Map issues/hotspots to SARIF
+# Map issues to SARIF
 # ------------------------------------------------------------------------------
 map_issues_to_sarif() {
-  local issues_json="$1" workspace="$2" rule_file="${3:-}"
-  if [[ -z "$rule_file" ]]; then
-    rule_file=$(mktemp)
-  fi
+  local issues_json="$1" workspace="$2"
 
   while read -r issue; do
-    local rule message file_path start_line end_line start_col end_col severity type snippet
+    local rule message file_path start_line end_line start_col end_col severity type
     rule=$($jq_bin -r '.rule' <<<"$issue")
     message=$($jq_bin -r '.message' <<<"$issue")
     file_path=$($jq_bin -r '.component | split(":")[1]?' <<<"$issue")
@@ -70,10 +82,8 @@ map_issues_to_sarif() {
 
     snippet=$(get_snippet "${workspace}/${file_path}" "$start_line" "$end_line" | $jq_bin -Rs .)
 
-    # Store rule ID
-    echo "$rule" >>"$rule_file"
+    add_rule_id "$rule"
 
-    # Output SARIF result object
     $jq_bin -n \
       --arg rule "$rule" \
       --arg level "$(severity_map "$severity")" \
@@ -106,13 +116,10 @@ map_issues_to_sarif() {
 }
 
 map_hotspots_to_sarif() {
-  local issues_json="$1" workspace="$2" rule_file="${3:-}"
-  if [[ -z "$rule_file" ]]; then
-    rule_file=$(mktemp)
-  fi
+  local hotspots_json="$1" workspace="$2"
 
   while read -r hotspot; do
-    local rule message file_path start_line end_line start_col end_col severity snippet
+    local rule message file_path start_line end_line start_col end_col severity
     rule=$($jq_bin -r '.ruleKey' <<<"$hotspot")
     message=$($jq_bin -r '.message' <<<"$hotspot")
     file_path=$($jq_bin -r '.component | split(":")[1]?' <<<"$hotspot")
@@ -124,10 +131,8 @@ map_hotspots_to_sarif() {
 
     snippet=$(get_snippet "${workspace}/${file_path}" "$start_line" "$end_line" | $jq_bin -Rs .)
 
-    # Store rule ID
-    echo "$rule" >>"$rule_file"
+    add_rule_id "$rule"
 
-    # Output SARIF result object
     $jq_bin -n \
       --arg rule "$rule" \
       --arg level "$(echo "$severity" | tr '[:lower:]' '[:upper:]')" \
@@ -160,16 +165,13 @@ map_hotspots_to_sarif() {
 }
 
 # ------------------------------------------------------------------------------
-# Generate SARIF rules
+# Rules section
 # ------------------------------------------------------------------------------
 make_rules_for_sarif() {
-  local issues_json="$1" workspace="$2" rule_file="${3:-}"
-  if [[ -z "$rule_file" ]]; then
-    rule_file=$(mktemp)
-  fi
-  sort -u "$rule_file" | while read -r rule_id; do
+  local host="$1" token="$2"
+  for rule_id in $(sort -u "$RULE_IDS_FILE"); do
     resp=$(fetch_sonar_rule "$host" "$token" "$rule_id")
-    $jq_bin -c '
+    $jq_bin -c --arg host "$host" '
       .rule? 
       | select(. != null)
       | {
@@ -179,7 +181,7 @@ make_rules_for_sarif() {
           fullDescription: { text: .htmlDesc },
           help: {
             text: (.mdDesc // .htmlDesc),
-            uri: ("'"$host"'/coding_rules?open=" + .key)
+            uri: ($host + "/coding_rules?open=" + .key)
           },
           properties: {
             tags: .tags,
@@ -193,30 +195,23 @@ make_rules_for_sarif() {
 }
 
 # ------------------------------------------------------------------------------
-# Generate SARIF output
+# SARIF generation
 # ------------------------------------------------------------------------------
 get_sarif_output() {
   local url="$1" token="$2" project="$3" workspace="$4" version="$5"
 
-  local rule_file
-  rule_file=$(mktemp)
-  trap 'rm -f "$rule_file"' EXIT
-
-  # Fetch JSON
   issues_json=$(fetch_sonar_issues "$url" "$token" "$project")
   hotspots_json=$(fetch_sonar_hotspots "$url" "$token" "$project")
 
-  # Map to SARIF results
-  issues_sarif=$(map_issues_to_sarif "$issues_json" "$workspace" "$rule_file" | $jq_bin -s .)
-  hotspots_sarif=$(map_hotspots_to_sarif "$hotspots_json" "$workspace" "$rule_file" | $jq_bin -s .)
+  # Clear rule IDs file before mapping
+  > "$RULE_IDS_FILE"
+  issues_sarif=$(map_issues_to_sarif "$issues_json" "$workspace" | $jq_bin -s .)
+  hotspots_sarif=$(map_hotspots_to_sarif "$hotspots_json" "$workspace" | $jq_bin -s .)
 
-  # Combine
   combined=$($jq_bin -s '.[0] + .[1]' <<<"$issues_sarif $hotspots_sarif")
 
-  # Build rules
-  rules=$(make_rules_for_sarif "$url" "$token" "$rule_file" | $jq_bin -s .)
+  rules=$(make_rules_for_sarif "$url" "$token" | $jq_bin -s .)
 
-  # Output final SARIF
   $jq_bin -n \
     --arg version "$version" \
     --argjson results "$combined" \
