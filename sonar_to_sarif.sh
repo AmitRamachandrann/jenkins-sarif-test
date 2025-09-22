@@ -58,23 +58,23 @@ get_snippet() {
 map_issues_to_sarif() {
   local issues_json="$1" workspace="$2"
 
-  echo "$issues_json" | jq -c '.issues[]?' | while read -r issue; do
+  echo "$issues_json" | $jq -c '.issues[]?' | while read -r issue; do
     local rule message file_path start_line end_line start_col end_col severity type
-    rule=$(jq -r '.rule' <<<"$issue")
-    message=$(jq -r '.message' <<<"$issue")
-    file_path=$(jq -r '.component | split(":")[1]?' <<<"$issue")
-    start_line=$(jq -r '.textRange.startLine // 1' <<<"$issue")
-    end_line=$(jq -r '.textRange.endLine // 1' <<<"$issue")
-    start_col=$(jq -r '.textRange.startOffset // 1' <<<"$issue")
-    end_col=$(jq -r '.textRange.endOffset // 1' <<<"$issue")
-    severity=$(jq -r '.severity' <<<"$issue")
-    type=$(jq -r '.type' <<<"$issue")
+    rule=$($jq -r '.rule' <<<"$issue")
+    message=$($jq -r '.message' <<<"$issue")
+    file_path=$($jq -r '.component | split(":")[1]?' <<<"$issue")
+    start_line=$($jq -r '.textRange.startLine // 1' <<<"$issue")
+    end_line=$($jq -r '.textRange.endLine // 1' <<<"$issue")
+    start_col=$($jq -r '.textRange.startOffset // 1' <<<"$issue")
+    end_col=$($jq -r '.textRange.endOffset // 1' <<<"$issue")
+    severity=$($jq -r '.severity' <<<"$issue")
+    type=$($jq -r '.type' <<<"$issue")
 
-    snippet=$(get_snippet "${workspace}/${file_path}" "$start_line" "$end_line" | jq -Rs .)
+    snippet=$(get_snippet "${workspace}/${file_path}" "$start_line" "$end_line" | $jq -Rs .)
 
     add_rule_id "$rule"
 
-    jq -n \
+    $jq -n \
       --arg rule "$rule" \
       --arg level "$(severity_map "$severity")" \
       --arg type "$type" \
@@ -110,7 +110,7 @@ make_rules_for_sarif() {
   local host="$1" token="$2"
   for rule_id in $(printf "%s\n" "${RULE_IDS[@]}" | sort -u); do
     resp=$(fetch_sonar_rule "$host" "$token" "$rule_id")
-    jq -c '.rule | {
+    $jq -c '.rule | {
       id: .key,
       name: .name,
       shortDescription: { text: .name },
@@ -137,14 +137,14 @@ get_sarif_output() {
   issues_json=$(fetch_sonar_issues "$url" "$token" "$project")
   hotspots_json=$(fetch_sonar_hotspots "$url" "$token" "$project")
 
-  issues_sarif=$(map_issues_to_sarif "$issues_json" "$workspace" | jq -s .)
-  hotspots_sarif=$(map_issues_to_sarif "$hotspots_json" "$workspace" | jq -s .)
+  issues_sarif=$(map_issues_to_sarif "$issues_json" "$workspace" | $jq -s .)
+  hotspots_sarif=$(map_issues_to_sarif "$hotspots_json" "$workspace" | $jq -s .)
 
-  combined=$(jq -s '.[0] + .[1]' <<<"$issues_sarif $hotspots_sarif")
+  combined=$($jq -s '.[0] + .[1]' <<<"$issues_sarif $hotspots_sarif")
 
-  rules=$(make_rules_for_sarif "$url" "$token" | jq -s .)
+  rules=$(make_rules_for_sarif "$url" "$token" | $jq -s .)
 
-  jq -n \
+  $jq -n \
     --arg version "$version" \
     --argjson results "$combined" \
     --argjson rules "$rules" \
