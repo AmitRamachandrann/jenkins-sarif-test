@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo
+set -euo pipefail
 
 # Dependencies
 jq_bin=$(command -v $jq || echo "$jq")
