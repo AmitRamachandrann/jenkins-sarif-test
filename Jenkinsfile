@@ -159,8 +159,8 @@ pipeline {
         stage('Generate SARIF') {
             steps {
                 sh '''
-                chmod +x ./sonar_to_sarif.sh
-                ./sonar_to_sarif.sh get_sarif_output \
+                chmod +x ./sonar_to_sariff.sh
+                ./sonar_to_sariff.sh get_sarif_output \
                 "$SONAR_HOST" \
                 "$SONAR_TOKEN" \
                 "$PROJECT_KEY" \
