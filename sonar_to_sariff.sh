@@ -171,26 +171,27 @@ make_rules_for_sarif() {
   local host="$1" token="$2"
   for rule_id in $(sort -u "$RULE_IDS_FILE"); do
     resp=$(fetch_sonar_rule "$host" "$token" "$rule_id")
-    $jq_bin -c --arg host "$host" '
-      .rule? 
-      | select(. != null)
-      | {
-          id: .key,
-          name: .name,
-          shortDescription: { text: .name },
-          fullDescription: { text: .htmlDesc },
-          help: {
+    mapped_precision="$(severity_map "$(echo "$resp" | $jq_bin -r '.rule.severity')")"
+    $jq_bin -c --arg host "$host" --arg precision "$mapped_precision" '
+    .rule? 
+    | select(. != null)
+    | {
+        id: .key,
+        name: .name,
+        shortDescription: { text: .name },
+        fullDescription: { text: .htmlDesc },
+        help: {
             text: (.mdDesc // .htmlDesc),
             uri: ($host + "/coding_rules?open=" + .key)
-          },
-          properties: {
+        },
+        properties: {
             tags: .tags,
             severity: .severity,
             type: .type,
             lang: .lang,
-            precision: .severity
-          }
-        }' <<<"$resp"
+            precision: $precision
+        }
+    }' <<<"$resp"
   done
 }
 
