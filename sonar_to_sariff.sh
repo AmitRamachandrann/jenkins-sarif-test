@@ -80,7 +80,7 @@ map_issues_to_sarif() {
     severity=$($jq_bin -r '.severity' <<<"$issue")
     type=$($jq_bin -r '.type' <<<"$issue")
 
-    snippet=$(get_snippet "${workspace}/${file_path}" "$start_line" "$end_line" | $jq_bin -Rs .)
+    snippet=$(get_snippet "${workspace}/${file_path}" "$start_line" "$end_line")
 
     add_rule_id "$rule"
 

@@ -131,12 +131,6 @@ pipeline {
             }
         }
 
-        stage('Show SARIF JSON') {
-            steps {
-                sh '$jq . sonar.sarif.json'
-            }
-        }
-
         stage('Archive SARIF Artifact') {
             steps {
                 archiveArtifacts artifacts: 'sonar.sarif.json', fingerprint: true
