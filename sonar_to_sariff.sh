@@ -129,7 +129,7 @@ map_hotspots_to_sarif() {
     end_col=$($jq_bin -r '.textRange.endOffset // 1' <<<"$hotspot")
     severity=$($jq_bin -r '.vulnerabilityProbability' <<<"$hotspot")
 
-    snippet=$(get_snippet "${workspace}/${file_path}" "$start_line" "$end_line" | $jq_bin -Rs .)
+    snippet=$(get_snippet "${workspace}/${file_path}" "$start_line" "$end_line")
 
     add_rule_id "$rule"
 
