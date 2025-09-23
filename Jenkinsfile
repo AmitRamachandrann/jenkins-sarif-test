@@ -80,17 +80,6 @@ pipeline {
         }
 
 
-
-        // stage('Get user token') {
-        //     steps {
-        //         script {
-        //             def user_token = sh(script: "curl -X POST -s -u ${SONAR_TOKEN}: ${SONAR_HOST}/api/user_tokens/generate?name=${PROJECT_KEY} | ${JQ} -r '.token'", returnStdout: true)
-        //             echo "Generated user token: ${user_token}"
-        //         }
-        //     }
-        // }
-
-
         stage('SonarQube Analysis') {
             steps {
                 sh """
@@ -128,34 +117,6 @@ pipeline {
             }
         }
 
-        // stage('Fetch Issues & Hotspots') {
-        //     steps {
-        //         script {
-        //             // def issues = sh(
-        //             //     script: """curl -s -u ${SONAR_TOKEN}: \\
-        //             //       "${SONAR_HOST}/api/issues/search?componentKeys=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
-        //             //     returnStdout: true
-        //             // ).trim()
-        //             // // echo "===== Issues ====="
-        //             // // echo issues
-
-        //             // def hotspots = sh(
-        //             //     script: """curl -s -u ${SONAR_TOKEN}: \\
-        //             //       "${SONAR_HOST}/api/hotspots/search?projectKey=${PROJECT_KEY}&ps=500" | ${JQ} '.'""",
-        //             //     returnStdout: true
-        //             // ).trim()
-        //             // // echo "===== Security Hotspots ====="
-        //             // // echo hotspots
-
-        //             // Print the library function
-        //             echo "===== Library Function ====="
-        //             def workspacePath = env.WORKSPACE
-        //             def sarifout = helper.getSarifOutput(env.SONAR_HOST, env.SONAR_TOKEN, env.PROJECT_KEY , workspacePath, SCANNER_VERSION)
-        //             echo "${sarifout}"
-        //         }
-        //     }
-        // }
-
         stage('Generate SARIF') {
             steps {
                 sh '''
@@ -173,6 +134,12 @@ pipeline {
         stage('Show SARIF JSON') {
             steps {
                 sh '$jq . sonar.sarif.json'
+            }
+        }
+
+        stage('Archive SARIF Artifact') {
+            steps {
+                archiveArtifacts artifacts: 'sonar.sarif.json', fingerprint: true
             }
         }
     }

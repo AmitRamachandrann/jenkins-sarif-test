@@ -25,7 +25,7 @@ severity_map() {
   case "$sev" in
     MINOR) echo "LOW" ;;
     MAJOR|HIGH) echo "HIGH" ;;
-    CRITICAL|BLOCKER) echo "VERY_HIGH" ;;
+    CRITICAL|BLOCKER) echo "VERY-HIGH" ;;
     MEDIUM) echo "MEDIUM" ;;
     LOW) echo "LOW" ;;
     *) echo "INFORMATION" ;;
