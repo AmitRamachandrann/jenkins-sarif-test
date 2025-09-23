@@ -106,7 +106,7 @@ pipeline {
                     timeout(time: 5, unit: 'MINUTES') {
                         waitUntil {
                             def result = sh(
-                                script: 'curl -s -u $SONAR_TOKEN: ${ceTaskUrl} | $jq -r \'.task.status\'',
+                                script: "curl -s -u ${SONAR_TOKEN}: ${ceTaskUrl} | $jq -r '.task.status'",
                                 returnStdout: true
                             ).trim()
                             echo "SonarQube CE task status: ${result}"
