@@ -106,7 +106,7 @@ pipeline {
                     timeout(time: 5, unit: 'MINUTES') {
                         waitUntil {
                             def result = sh(
-                                script: "curl -s -u ${SONAR_TOKEN}: ${ceTaskUrl} | $jq -r '.task.status'",
+                                script: 'curl -s -u $SONAR_TOKEN: ${ceTaskUrl} | $jq -r \'.task.status\'',
                                 returnStdout: true
                             ).trim()
                             echo "SonarQube CE task status: ${result}"
@@ -119,7 +119,6 @@ pipeline {
 
         stage('Generate SARIF') {
             steps {
-                withEnv(["SONAR_TOKEN=${SONAR_TOKEN}"]) {
                 sh '''
                 chmod +x ./sonar_to_sariff.sh
                 ./sonar_to_sariff.sh get_sarif_output \
@@ -129,7 +128,6 @@ pipeline {
                 "$WORKSPACE" \
                 "$SCANNER_VERSION" > sonar.sarif.json
                 '''
-            }
             }
         }
 
